@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import QRCode from 'react-qr-code';
 import { Download, Share2, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -62,8 +62,6 @@ export default function LineQRCode({ lineOaId, siteUrl, card = true }: LineQRCod
   };
 
   if (!lineUrl && !siteUrl) return null;
-
-  const Wrapper = card ? CardWrapper : React.Fragment;
 
   return (
     <div className={cn(card && 'card p-6', 'space-y-4')}>
@@ -137,11 +135,3 @@ export default function LineQRCode({ lineOaId, siteUrl, card = true }: LineQRCod
     </div>
   );
 }
-
-// 避免 ts 報錯，CardWrapper 只用於結構
-function CardWrapper({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
-}
-
-// 需要 import React
-import React from 'react';

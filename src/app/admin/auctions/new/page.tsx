@@ -42,7 +42,7 @@ export default function NewAuctionPage() {
   const [form, setForm] = useState<FormData>({
     title: '',
     description: '',
-    category: '球鞋',
+    category: '活體',
     condition: '全新',
     startPrice: '0',
     minIncrement: '100',

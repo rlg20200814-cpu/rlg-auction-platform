@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth, adminDb } from '@/lib/firebase/admin';
-import { ref, set, get } from 'firebase-admin/database';
 
 interface LineTokenResponse {
   access_token: string;
@@ -77,7 +76,6 @@ export async function GET(req: NextRequest) {
     // ── Step 3: 取得 Email（若有授權 email scope）──
     let email: string | null = null;
     try {
-      // Email 包含在 id_token 中（JWT）
       const idTokenPayload = JSON.parse(
         Buffer.from(tokenData.id_token.split('.')[1], 'base64').toString()
       );
@@ -104,13 +102,14 @@ export async function GET(req: NextRequest) {
 
     // 寫入 Realtime Database（若已存在則保留 createdAt）
     const db = adminDb();
-    const userRef = ref(db, `users/${uid}`);
-    const existing = await get(userRef);
+    const userRef = db.ref(`users/${uid}`);
+    const existing = await userRef.get();
+
     if (existing.exists()) {
       const { createdAt, ...rest } = userData;
-      await set(userRef, { ...existing.val(), ...rest });
+      await userRef.set({ ...existing.val(), ...rest });
     } else {
-      await set(userRef, userData);
+      await userRef.set(userData);
     }
 
     // ── Step 5: 建立 Firebase Custom Token ──
