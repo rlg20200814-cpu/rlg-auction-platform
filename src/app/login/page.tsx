@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { signInWithEmail, signInWithGoogle, registerWithEmail } from '@/lib/firebase/auth';
@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 
 type Mode = 'login' | 'register';
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const lineError = searchParams.get('error');
@@ -74,6 +74,125 @@ export default function LoginPage() {
   };
 
   return (
+    <div className="w-full max-w-sm">
+      {/* LINE error */}
+      {lineError && (
+        <div className="flex items-center gap-2 bg-red-900/30 border border-red-800 text-red-400 rounded-lg px-4 py-3 text-sm mb-5">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          {lineErrorMap[lineError] || 'LINE 登入失敗'}
+        </div>
+      )}
+
+      {/* LINE Login — 主要按鈕 */}
+      <LineLoginButton disabled={loading} className="mb-3" />
+
+      {/* Tabs */}
+      <div className="flex mb-6 bg-brand-gray-900 rounded-lg p-1">
+        <button
+          onClick={() => setMode('login')}
+          className={cn(
+            'flex-1 py-2 text-sm font-medium rounded-md transition-all',
+            mode === 'login' ? 'bg-brand-white text-brand-black' : 'text-brand-gray-400'
+          )}
+        >
+          登入
+        </button>
+        <button
+          onClick={() => setMode('register')}
+          className={cn(
+            'flex-1 py-2 text-sm font-medium rounded-md transition-all',
+            mode === 'register' ? 'bg-brand-white text-brand-black' : 'text-brand-gray-400'
+          )}
+        >
+          註冊
+        </button>
+      </div>
+
+      {/* Google Login */}
+      <button
+        onClick={handleGoogle}
+        disabled={loading}
+        className="btn-secondary w-full mb-4 gap-3"
+      >
+        <GoogleIcon />
+        使用 Google 登入
+      </button>
+
+      <div className="relative flex items-center gap-3 mb-4">
+        <div className="flex-1 h-px bg-brand-gray-800" />
+        <span className="text-xs text-brand-gray-600">或使用 Email 登入</span>
+        <div className="flex-1 h-px bg-brand-gray-800" />
+      </div>
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="space-y-3">
+        {mode === 'register' && (
+          <div className="relative">
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gray-500 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="姓名"
+              value={form.name}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              className="input pl-10"
+              autoComplete="name"
+            />
+          </div>
+        )}
+
+        <div className="relative">
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gray-500 pointer-events-none" />
+          <input
+            type="email"
+            placeholder="電子郵件"
+            value={form.email}
+            onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+            className="input pl-10"
+            autoComplete="email"
+            required
+          />
+        </div>
+
+        <div className="relative">
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gray-500 pointer-events-none" />
+          <input
+            type={showPassword ? 'text' : 'password'}
+            placeholder="密碼"
+            value={form.password}
+            onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+            className="input pl-10 pr-10"
+            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+            required
+            minLength={6}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-gray-500 hover:text-brand-gray-300"
+            tabIndex={-1}
+          >
+            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          </button>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="btn-primary w-full py-3 mt-2"
+        >
+          {loading ? '處理中...' : mode === 'login' ? '登入' : '建立帳號'}
+        </button>
+      </form>
+
+      <p className="text-center text-xs text-brand-gray-600 mt-6">
+        繼續即表示你同意我們的服務條款與隱私政策
+      </p>
+    </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-brand-black">
       {/* Logo */}
       <Link href="/" className="flex items-center gap-2 mb-8 font-bold text-xl">
@@ -81,120 +200,13 @@ export default function LoginPage() {
         BidNow
       </Link>
 
-      <div className="w-full max-w-sm">
-        {/* LINE error */}
-        {lineError && (
-          <div className="flex items-center gap-2 bg-red-900/30 border border-red-800 text-red-400 rounded-lg px-4 py-3 text-sm mb-5">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            {lineErrorMap[lineError] || 'LINE 登入失敗'}
-          </div>
-        )}
-
-        {/* LINE Login — 主要按鈕 */}
-        <LineLoginButton disabled={loading} className="mb-3" />
-
-        {/* Tabs */}
-        <div className="flex mb-6 bg-brand-gray-900 rounded-lg p-1">
-          <button
-            onClick={() => setMode('login')}
-            className={cn(
-              'flex-1 py-2 text-sm font-medium rounded-md transition-all',
-              mode === 'login' ? 'bg-brand-white text-brand-black' : 'text-brand-gray-400'
-            )}
-          >
-            登入
-          </button>
-          <button
-            onClick={() => setMode('register')}
-            className={cn(
-              'flex-1 py-2 text-sm font-medium rounded-md transition-all',
-              mode === 'register' ? 'bg-brand-white text-brand-black' : 'text-brand-gray-400'
-            )}
-          >
-            註冊
-          </button>
-        </div>
-
-        {/* Google Login */}
-        <button
-          onClick={handleGoogle}
-          disabled={loading}
-          className="btn-secondary w-full mb-4 gap-3"
-        >
-          <GoogleIcon />
-          使用 Google 登入
-        </button>
-
-        <div className="relative flex items-center gap-3 mb-4">
-          <div className="flex-1 h-px bg-brand-gray-800" />
-          <span className="text-xs text-brand-gray-600">或使用 Email 登入</span>
-          <div className="flex-1 h-px bg-brand-gray-800" />
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-3">
-          {mode === 'register' && (
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gray-500 pointer-events-none" />
-              <input
-                type="text"
-                placeholder="姓名"
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                className="input pl-10"
-                autoComplete="name"
-              />
-            </div>
-          )}
-
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gray-500 pointer-events-none" />
-            <input
-              type="email"
-              placeholder="電子郵件"
-              value={form.email}
-              onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-              className="input pl-10"
-              autoComplete="email"
-              required
-            />
-          </div>
-
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gray-500 pointer-events-none" />
-            <input
-              type={showPassword ? 'text' : 'password'}
-              placeholder="密碼"
-              value={form.password}
-              onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-              className="input pl-10 pr-10"
-              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-              required
-              minLength={6}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-gray-500 hover:text-brand-gray-300"
-              tabIndex={-1}
-            >
-              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-primary w-full py-3 mt-2"
-          >
-            {loading ? '處理中...' : mode === 'login' ? '登入' : '建立帳號'}
-          </button>
-        </form>
-
-        <p className="text-center text-xs text-brand-gray-600 mt-6">
-          繼續即表示你同意我們的服務條款與隱私政策
-        </p>
-      </div>
+      <Suspense
+        fallback={
+          <div className="w-8 h-8 border-2 border-brand-gray-700 border-t-brand-accent rounded-full animate-spin" />
+        }
+      >
+        <LoginContent />
+      </Suspense>
     </div>
   );
 }

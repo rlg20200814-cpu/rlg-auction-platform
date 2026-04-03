@@ -1,18 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signInWithCustomToken } from 'firebase/auth';
 import { auth } from '@/lib/firebase/config';
 import { Gavel } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-/**
- * /auth/line
- * 收到 LINE callback 帶來的 Firebase custom token，
- * 完成 Firebase 登入後導回首頁。
- */
-export default function LineAuthPage() {
+function LineAuthContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<'processing' | 'error'>('processing');
@@ -52,9 +47,7 @@ export default function LineAuthPage() {
   }, [searchParams, router]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-brand-black">
-      <Gavel className="w-10 h-10 text-brand-accent mb-6" strokeWidth={2.5} />
-
+    <>
       {status === 'processing' ? (
         <div className="text-center space-y-3">
           <div className="w-8 h-8 border-2 border-brand-gray-700 border-t-brand-accent rounded-full animate-spin mx-auto" />
@@ -71,6 +64,21 @@ export default function LineAuthPage() {
           </button>
         </div>
       )}
+    </>
+  );
+}
+
+export default function LineAuthPage() {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-brand-black">
+      <Gavel className="w-10 h-10 text-brand-accent mb-6" strokeWidth={2.5} />
+      <Suspense
+        fallback={
+          <div className="w-8 h-8 border-2 border-brand-gray-700 border-t-brand-accent rounded-full animate-spin" />
+        }
+      >
+        <LineAuthContent />
+      </Suspense>
     </div>
   );
 }
