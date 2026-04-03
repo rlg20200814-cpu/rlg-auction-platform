@@ -1,0 +1,144 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-inter: 'Inter', system-ui, sans-serif;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-brand-black text-brand-white antialiased;
+    font-family: var(--font-inter);
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-brand-gray-900;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-brand-gray-700 rounded-full;
+  }
+
+  /* Remove number input arrows */
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+  }
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+}
+
+@layer components {
+  /* ── Buttons ── */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2
+           bg-brand-accent text-brand-black font-bold
+           px-6 py-3 rounded-lg
+           transition-all duration-150 active:scale-95
+           disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100
+           text-sm md:text-base;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2
+           bg-brand-gray-800 text-brand-white font-medium
+           px-6 py-3 rounded-lg border border-brand-gray-700
+           hover:bg-brand-gray-700 transition-all duration-150 active:scale-95
+           disabled:opacity-40 disabled:cursor-not-allowed
+           text-sm md:text-base;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2
+           text-brand-gray-400 font-medium px-4 py-2 rounded-lg
+           hover:text-brand-white hover:bg-brand-gray-800
+           transition-all duration-150 text-sm;
+  }
+
+  /* ── Cards ── */
+  .card {
+    @apply bg-brand-gray-900 rounded-xl border border-brand-gray-800
+           overflow-hidden transition-all duration-200;
+  }
+
+  .card-hover {
+    @apply card hover:border-brand-gray-600 hover:-translate-y-1;
+  }
+
+  /* ── Inputs ── */
+  .input {
+    @apply w-full bg-brand-gray-800 border border-brand-gray-700
+           text-brand-white placeholder-brand-gray-500
+           px-4 py-3 rounded-lg text-sm
+           focus:outline-none focus:border-brand-white focus:ring-1 focus:ring-brand-white
+           transition-colors;
+  }
+
+  /* ── Tags ── */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  .badge-active {
+    @apply badge bg-green-900/50 text-green-400 border border-green-800;
+  }
+  .badge-upcoming {
+    @apply badge bg-blue-900/50 text-blue-400 border border-blue-800;
+  }
+  .badge-ended {
+    @apply badge bg-brand-gray-800 text-brand-gray-400 border border-brand-gray-700;
+  }
+
+  /* ── Divider ── */
+  .divider {
+    @apply border-t border-brand-gray-800 my-4;
+  }
+
+  /* ── Price display ── */
+  .price-display {
+    @apply font-mono font-bold text-brand-white tabular-nums;
+  }
+
+  /* ── Bid flash animation ── */
+  .bid-flash {
+    animation: bidFlash 1s ease-out;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* ── Loading skeleton ── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #262626 25%, #404040 50%, #262626 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+/* ── Bid count flash ── */
+@keyframes bidFlash {
+  0% { background-color: rgba(232,255,0,0.2); }
+  100% { background-color: transparent; }
+}

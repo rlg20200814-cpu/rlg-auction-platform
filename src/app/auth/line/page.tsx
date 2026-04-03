@@ -1,0 +1,76 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { signInWithCustomToken } from 'firebase/auth';
+import { auth } from '@/lib/firebase/config';
+import { Gavel } from 'lucide-react';
+import toast from 'react-hot-toast';
+
+/**
+ * /auth/line
+ * 收到 LINE callback 帶來的 Firebase custom token，
+ * 完成 Firebase 登入後導回首頁。
+ */
+export default function LineAuthPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [status, setStatus] = useState<'processing' | 'error'>('processing');
+  const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    const token = searchParams.get('token');
+    const error = searchParams.get('error');
+
+    if (error) {
+      const errorMap: Record<string, string> = {
+        line_denied: '已取消 LINE 登入',
+        state_mismatch: '安全驗證失敗，請重試',
+        line_failed: 'LINE 登入失敗，請稍後再試',
+      };
+      setErrorMsg(errorMap[error] || 'LINE 登入失敗');
+      setStatus('error');
+      return;
+    }
+
+    if (!token) {
+      setErrorMsg('缺少驗證 Token');
+      setStatus('error');
+      return;
+    }
+
+    signInWithCustomToken(auth, token)
+      .then(() => {
+        toast.success('LINE 登入成功！');
+        router.replace('/');
+      })
+      .catch((err) => {
+        console.error('Firebase signIn error:', err);
+        setErrorMsg('登入失敗，Token 可能已過期，請重試');
+        setStatus('error');
+      });
+  }, [searchParams, router]);
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-brand-black">
+      <Gavel className="w-10 h-10 text-brand-accent mb-6" strokeWidth={2.5} />
+
+      {status === 'processing' ? (
+        <div className="text-center space-y-3">
+          <div className="w-8 h-8 border-2 border-brand-gray-700 border-t-brand-accent rounded-full animate-spin mx-auto" />
+          <p className="text-brand-gray-300 text-sm">LINE 登入中，請稍候...</p>
+        </div>
+      ) : (
+        <div className="text-center space-y-4">
+          <p className="text-red-400 text-sm">{errorMsg}</p>
+          <button
+            onClick={() => router.push('/login')}
+            className="btn-secondary"
+          >
+            返回登入頁
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}

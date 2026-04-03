@@ -1,0 +1,41 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        // Users can read any profile
+        ".read": "auth != null",
+        // Users can only write their own profile
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.hasChildren(['uid', 'name', 'email'])"
+      }
+    },
+    "auctions": {
+      // Anyone can read auctions (for public browsing)
+      ".read": true,
+      "$auctionId": {
+        // Only authenticated users can write (admin check happens in application layer)
+        ".write": "auth != null",
+        ".validate": "newData.hasChildren(['title', 'startPrice', 'minIncrement', 'endTime', 'status'])",
+        "bidCount": {
+          // bidCount can only increase (via transaction)
+          ".validate": "!data.exists() || newData.val() >= data.val()"
+        },
+        "currentPrice": {
+          // currentPrice can only increase (via transaction)
+          ".validate": "!data.exists() || newData.val() >= data.val()"
+        }
+      }
+    },
+    "bids": {
+      "$auctionId": {
+        // Anyone can read bids
+        ".read": true,
+        "$bidId": {
+          // Only authenticated users can create bids (not edit/delete)
+          ".write": "auth != null && (!data.exists())",
+          ".validate": "newData.hasChildren(['userId', 'userName', 'amount', 'timestamp']) && newData.child('userId').val() === auth.uid && newData.child('amount').val() > 0"
+        }
+      }
+    }
+  }
+}
