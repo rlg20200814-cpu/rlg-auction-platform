@@ -10,15 +10,17 @@ import crypto from 'crypto';
  */
 export async function GET(req: NextRequest) {
   const channelId = process.env.LINE_CHANNEL_ID;
-  const callbackUrl = process.env.LINE_CALLBACK_URL;
   const secret = process.env.LINE_CHANNEL_SECRET;
 
-  if (!channelId || !callbackUrl || !secret) {
+  if (!channelId || !secret) {
     return NextResponse.json(
       { error: 'LINE Login 未設定，請檢查環境變數' },
       { status: 500 }
     );
   }
+
+  // 從請求 URL 動態計算 callback URL，確保與 callback route 完全一致
+  const callbackUrl = new URL('/api/auth/line/callback', req.url).toString();
 
   // 用 timestamp + HMAC 簽名取代 cookie-based state
   const timestamp = Date.now().toString();
