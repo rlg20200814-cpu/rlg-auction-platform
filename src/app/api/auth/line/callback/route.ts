@@ -61,7 +61,10 @@ export async function GET(req: NextRequest) {
 
   try {
     // ── Step 1: 換取 Access Token ──
-    const callbackUrl = process.env.LINE_CALLBACK_URL || '';
+    // callback 的 req.url 一定是 LINE 重導向的正確 URL（即 LINE Console 登記的 URL）
+    // 用這個計算 redirect_uri，完全不依賴 env var，保證與 auth step 一致
+    const { origin, pathname } = new URL(req.url);
+    const callbackUrl = `${origin}${pathname}`;
     console.log('[LINE callback] redirect_uri being sent:', JSON.stringify(callbackUrl));
 
     const tokenRes = await fetch('https://api.line.me/oauth2/v2.1/token', {
