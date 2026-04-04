@@ -61,9 +61,7 @@ export async function GET(req: NextRequest) {
 
   try {
     // ── Step 1: 換取 Access Token ──
-    // 使用 NEXT_PUBLIC_SITE_URL（build-time baked）確保與 auth route 完全一致
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(req.url).origin;
-    const callbackUrl = `${siteUrl}/api/auth/line/callback`;
+    const callbackUrl = process.env.LINE_CALLBACK_URL || '';
     console.log('[LINE callback] redirect_uri being sent:', JSON.stringify(callbackUrl));
 
     const tokenRes = await fetch('https://api.line.me/oauth2/v2.1/token', {

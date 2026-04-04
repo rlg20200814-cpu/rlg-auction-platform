@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 
 /**
@@ -8,7 +8,7 @@ import crypto from 'crypto';
  * CSRF 防護：改用 HMAC 簽名 state，不依賴 cookie
  * 格式：{timestamp}.{hmac}
  */
-export async function GET(req: NextRequest) {
+export async function GET() {
   const channelId = process.env.LINE_CHANNEL_ID;
   const secret = process.env.LINE_CHANNEL_SECRET;
 
@@ -19,9 +19,10 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  // 使用 NEXT_PUBLIC_SITE_URL（build-time baked）確保與 LINE Console 登記的 URL 完全一致
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(req.url).origin;
-  const callbackUrl = `${siteUrl}/api/auth/line/callback`;
+  const callbackUrl = process.env.LINE_CALLBACK_URL;
+  if (!callbackUrl) {
+    return NextResponse.json({ error: 'LINE_CALLBACK_URL 未設定' }, { status: 500 });
+  }
 
   // 用 timestamp + HMAC 簽名取代 cookie-based state
   const timestamp = Date.now().toString();
