@@ -140,7 +140,11 @@ export async function GET(req: NextRequest) {
     redirectUrl.searchParams.set('token', customToken);
     return NextResponse.redirect(redirectUrl);
   } catch (err) {
-    console.error('LINE callback error:', err);
-    return NextResponse.redirect(new URL('/login?error=line_failed', req.url));
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('LINE callback error:', msg);
+    const url = new URL('/login', req.url);
+    url.searchParams.set('error', 'line_failed');
+    url.searchParams.set('detail', msg.slice(0, 200));
+    return NextResponse.redirect(url);
   }
 }

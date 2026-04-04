@@ -15,6 +15,7 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const lineError = searchParams.get('error');
+  const lineDetail = searchParams.get('detail');
   const [mode, setMode] = useState<Mode>('login');
 
   useEffect(() => {
@@ -89,6 +90,7 @@ function LoginContent() {
         <div className="flex items-center gap-2 bg-red-900/30 border border-red-800 text-red-400 rounded-lg px-4 py-3 text-sm mb-5">
           <AlertCircle className="w-4 h-4 shrink-0" />
           {lineErrorMap[lineError] || 'LINE 登入失敗'}
+          {lineDetail && <div className="mt-1 text-xs opacity-70 break-all">{lineDetail}</div>}
         </div>
       )}
 
