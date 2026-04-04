@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminAuth } from '@/lib/firebase/admin';
 import crypto from 'crypto';
 
 interface LineTokenResponse {
@@ -16,13 +15,51 @@ interface LineProfile {
 }
 
 /**
+ * 手動用 Node crypto 建立 Firebase Custom Token（RS256 JWT）
+ * 繞過 Firebase Admin SDK createCustomToken 的 OpenSSL 相容問題
+ */
+function createFirebaseCustomToken(
+  uid: string,
+  claims: Record<string, unknown>,
+  clientEmail: string,
+  privateKey: string
+): string {
+  const now = Math.floor(Date.now() / 1000);
+
+  const header = { alg: 'RS256', typ: 'JWT' };
+  const payload = {
+    iss: clientEmail,
+    sub: clientEmail,
+    aud: 'https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit',
+    iat: now,
+    exp: now + 3600,
+    uid,
+    claims,
+  };
+
+  const b64 = (obj: object) =>
+    Buffer.from(JSON.stringify(obj)).toString('base64url');
+
+  const signingInput = `${b64(header)}.${b64(payload)}`;
+  const sign = crypto.createSign('RSA-SHA256');
+  sign.update(signingInput);
+  const signature = sign.sign(privateKey, 'base64url');
+
+  return `${signingInput}.${signature}`;
+}
+
+/**
+ * 取得格式正確的 PEM 私鑰（支援 base64 和 \n 兩種儲存方式）
+ */
+function getPrivateKey(): string {
+  if (process.env.FIREBASE_ADMIN_PRIVATE_KEY_BASE64) {
+    return Buffer.from(process.env.FIREBASE_ADMIN_PRIVATE_KEY_BASE64, 'base64').toString('utf-8');
+  }
+  return (process.env.FIREBASE_ADMIN_PRIVATE_KEY || '').replace(/\\n/g, '\n');
+}
+
+/**
  * GET /api/auth/line/callback
- * LINE OAuth callback — 取得 profile → 建立 Firebase Custom Token → 導回前端
- *
- * 刻意不做 Firebase DB 讀寫（交給 client-side AuthContext syncUserToDb 處理）
- * 以避免 Vercel Hobby plan 10 秒 timeout。
- *
- * CSRF 驗證：state 格式為 {timestamp}.{hmac}，用 LINE_CHANNEL_SECRET 驗簽
  */
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -34,7 +71,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL('/login?error=line_denied', req.url));
   }
 
-  // 驗證 HMAC state
   const secret = process.env.LINE_CHANNEL_SECRET;
   if (!state || !secret) {
     return NextResponse.redirect(new URL('/login?error=state_mismatch', req.url));
@@ -52,7 +88,6 @@ export async function GET(req: NextRequest) {
     Buffer.from(receivedHmac, 'hex'),
     Buffer.from(expectedHmac, 'hex')
   );
-  // 手機切換 app 可能較久，給 30 分鐘
   const isExpired = Date.now() - parseInt(timestamp) > 30 * 60 * 1000;
 
   if (!isValidHmac || isExpired) {
@@ -61,7 +96,6 @@ export async function GET(req: NextRequest) {
 
   try {
     // ── Step 1: 換取 Access Token ──
-    // callback 的 req.url 就是 LINE 重導向的 URL（= LINE Console 登記的 URL）
     const { origin, pathname } = new URL(req.url);
     const callbackUrl = `${origin}${pathname}`;
 
@@ -94,7 +128,7 @@ export async function GET(req: NextRequest) {
 
     const profile: LineProfile = await profileRes.json();
 
-    // ── Step 3: 從 id_token 取 email（若有授權）──
+    // ── Step 3: 從 id_token 取 email ──
     let email = '';
     try {
       const payload = JSON.parse(
@@ -103,21 +137,26 @@ export async function GET(req: NextRequest) {
       email = payload.email || '';
     } catch {}
 
-    // ── Step 4: 建立 Firebase Custom Token ──
-    // DB 讀寫交給 client-side syncUserToDb，避免 Vercel timeout
+    // ── Step 4: 建立 Firebase Custom Token（手動簽 JWT）──
     const uid = `line:${profile.userId}`;
     const isAdmin = (process.env.NEXT_PUBLIC_ADMIN_UIDS || '')
       .split(',')
       .map((s) => s.trim())
       .includes(uid);
 
-    const customToken = await adminAuth().createCustomToken(uid, {
-      lineUserId: profile.userId,
-      lineName: profile.displayName,
-      lineAvatar: profile.pictureUrl || '',
-      lineEmail: email,
-      isAdmin,
-    });
+    const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
+    const privateKey = getPrivateKey();
+
+    if (!clientEmail || !privateKey) {
+      throw new Error('Firebase Admin credentials not configured');
+    }
+
+    const customToken = createFirebaseCustomToken(
+      uid,
+      { lineUserId: profile.userId, lineName: profile.displayName, lineAvatar: profile.pictureUrl || '', lineEmail: email, isAdmin },
+      clientEmail,
+      privateKey
+    );
 
     // ── Step 5: 導回前端 ──
     const redirectUrl = new URL('/auth/line', req.url);
