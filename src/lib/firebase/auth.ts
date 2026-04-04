@@ -2,6 +2,8 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
   updateProfile,
@@ -13,6 +15,11 @@ import { auth, db } from './config';
 import type { User } from '@/types';
 
 const googleProvider = new GoogleAuthProvider();
+
+function isMobile(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+}
 
 // =============================================
 // Admin check
@@ -27,8 +34,18 @@ export function isAdminUid(uid: string): boolean {
 // Auth Methods
 // =============================================
 
-export async function signInWithGoogle(): Promise<User> {
+export async function signInWithGoogle(): Promise<User | null> {
+  if (isMobile()) {
+    await signInWithRedirect(auth, googleProvider);
+    return null; // 頁面會跳轉，不會執行到這裡
+  }
   const result = await signInWithPopup(auth, googleProvider);
+  return await syncUserToDb(result.user);
+}
+
+export async function getGoogleRedirectResult(): Promise<User | null> {
+  const result = await getRedirectResult(auth);
+  if (!result) return null;
   return await syncUserToDb(result.user);
 }
 

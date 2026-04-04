@@ -1,9 +1,9 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { signInWithEmail, signInWithGoogle, registerWithEmail } from '@/lib/firebase/auth';
+import { signInWithEmail, signInWithGoogle, registerWithEmail, getGoogleRedirectResult } from '@/lib/firebase/auth';
 import LineLoginButton from '@/components/auth/LineLoginButton';
 import { Gavel, Mail, Lock, User, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -16,6 +16,15 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const lineError = searchParams.get('error');
   const [mode, setMode] = useState<Mode>('login');
+
+  useEffect(() => {
+    getGoogleRedirectResult().then((user) => {
+      if (user) {
+        toast.success('登入成功！');
+        router.push('/');
+      }
+    }).catch(() => {});
+  }, [router]);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ email: '', password: '', name: '' });

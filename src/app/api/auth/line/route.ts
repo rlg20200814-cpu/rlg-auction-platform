@@ -34,8 +34,8 @@ export async function GET(req: NextRequest) {
   const response = NextResponse.redirect(lineAuthUrl);
   response.cookies.set('line_state', state, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: true,
+    sameSite: 'none',
     maxAge: 600, // 10 分鐘
     path: '/',
   });
