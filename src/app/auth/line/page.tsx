@@ -3,7 +3,9 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signInWithCustomToken } from 'firebase/auth';
-import { auth } from '@/lib/firebase/config';
+import { ref, get, set, update } from 'firebase/database';
+import { auth, db } from '@/lib/firebase/config';
+import { isAdminUid } from '@/lib/firebase/auth';
 import { Gavel } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -34,16 +36,49 @@ function LineAuthContent() {
       return;
     }
 
-    signInWithCustomToken(auth, token)
-      .then(() => {
+    (async () => {
+      try {
+        const credential = await signInWithCustomToken(auth, token);
+        const user = credential.user;
+
+        // 從 custom token claims 取 LINE profile，寫入 DB
+        const tokenResult = await user.getIdTokenResult();
+        const claims = tokenResult.claims;
+
+        const uid = user.uid;
+        const userData = {
+          uid,
+          name: (claims.lineName as string) || '用戶',
+          email: (claims.lineEmail as string) || '',
+          avatar: (claims.lineAvatar as string) ||
+            `https://ui-avatars.com/api/?name=${encodeURIComponent((claims.lineName as string) || 'U')}&background=0A0A0A&color=FAFAFA`,
+          isAdmin: isAdminUid(uid),
+          lineUserId: claims.lineUserId as string,
+          provider: 'line',
+        };
+
+        const userRef = ref(db, `users/${uid}`);
+        const snapshot = await get(userRef);
+
+        if (snapshot.exists()) {
+          await update(userRef, {
+            name: userData.name,
+            email: userData.email,
+            avatar: userData.avatar,
+            isAdmin: userData.isAdmin,
+          });
+        } else {
+          await set(userRef, { ...userData, createdAt: Date.now() });
+        }
+
         toast.success('LINE 登入成功！');
         router.replace('/');
-      })
-      .catch((err) => {
-        console.error('Firebase signIn error:', err);
+      } catch (err) {
+        console.error('LINE sign-in error:', err);
         setErrorMsg('登入失敗，Token 可能已過期，請重試');
         setStatus('error');
-      });
+      }
+    })();
   }, [searchParams, router]);
 
   return (

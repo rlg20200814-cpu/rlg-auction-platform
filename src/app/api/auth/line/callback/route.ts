@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminAuth, adminDb } from '@/lib/firebase/admin';
+import { adminAuth } from '@/lib/firebase/admin';
 import crypto from 'crypto';
 
 interface LineTokenResponse {
   access_token: string;
-  expires_in: number;
   id_token: string;
-  refresh_token: string;
   scope: string;
   token_type: string;
 }
@@ -15,12 +13,14 @@ interface LineProfile {
   userId: string;
   displayName: string;
   pictureUrl?: string;
-  statusMessage?: string;
 }
 
 /**
  * GET /api/auth/line/callback
  * LINE OAuth callback — 取得 profile → 建立 Firebase Custom Token → 導回前端
+ *
+ * 刻意不做 Firebase DB 讀寫（交給 client-side AuthContext syncUserToDb 處理）
+ * 以避免 Vercel Hobby plan 10 秒 timeout。
  *
  * CSRF 驗證：state 格式為 {timestamp}.{hmac}，用 LINE_CHANNEL_SECRET 驗簽
  */
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL('/login?error=line_denied', req.url));
   }
 
-  // 驗證 HMAC state（取代 cookie 方式）
+  // 驗證 HMAC state
   const secret = process.env.LINE_CHANNEL_SECRET;
   if (!state || !secret) {
     return NextResponse.redirect(new URL('/login?error=state_mismatch', req.url));
@@ -48,12 +48,12 @@ export async function GET(req: NextRequest) {
   const [timestamp, receivedHmac] = parts;
   const expectedHmac = crypto.createHmac('sha256', secret).update(timestamp).digest('hex');
 
-  // 驗簽 + 檢查 10 分鐘內有效
   const isValidHmac = crypto.timingSafeEqual(
     Buffer.from(receivedHmac, 'hex'),
     Buffer.from(expectedHmac, 'hex')
   );
-  const isExpired = Date.now() - parseInt(timestamp) > 10 * 60 * 1000;
+  // 手機切換 app 可能較久，給 30 分鐘
+  const isExpired = Date.now() - parseInt(timestamp) > 30 * 60 * 1000;
 
   if (!isValidHmac || isExpired) {
     return NextResponse.redirect(new URL('/login?error=state_mismatch', req.url));
@@ -61,11 +61,9 @@ export async function GET(req: NextRequest) {
 
   try {
     // ── Step 1: 換取 Access Token ──
-    // callback 的 req.url 一定是 LINE 重導向的正確 URL（即 LINE Console 登記的 URL）
-    // 用這個計算 redirect_uri，完全不依賴 env var，保證與 auth step 一致
+    // callback 的 req.url 就是 LINE 重導向的 URL（= LINE Console 登記的 URL）
     const { origin, pathname } = new URL(req.url);
     const callbackUrl = `${origin}${pathname}`;
-    console.log('[LINE callback] redirect_uri being sent:', JSON.stringify(callbackUrl));
 
     const tokenRes = await fetch('https://api.line.me/oauth2/v2.1/token', {
       method: 'POST',
@@ -75,7 +73,7 @@ export async function GET(req: NextRequest) {
         code,
         redirect_uri: callbackUrl,
         client_id: process.env.LINE_CHANNEL_ID!,
-        client_secret: process.env.LINE_CHANNEL_SECRET!,
+        client_secret: secret,
       }),
     });
 
@@ -96,52 +94,32 @@ export async function GET(req: NextRequest) {
 
     const profile: LineProfile = await profileRes.json();
 
-    // ── Step 3: 取得 Email（若有授權 email scope）──
-    let email: string | null = null;
+    // ── Step 3: 從 id_token 取 email（若有授權）──
+    let email = '';
     try {
-      const idTokenPayload = JSON.parse(
+      const payload = JSON.parse(
         Buffer.from(tokenData.id_token.split('.')[1], 'base64').toString()
       );
-      email = idTokenPayload.email || null;
+      email = payload.email || '';
     } catch {}
 
-    // ── Step 4: 在 Firebase 建立或更新用戶 ──
+    // ── Step 4: 建立 Firebase Custom Token ──
+    // DB 讀寫交給 client-side syncUserToDb，避免 Vercel timeout
     const uid = `line:${profile.userId}`;
     const isAdmin = (process.env.NEXT_PUBLIC_ADMIN_UIDS || '')
       .split(',')
       .map((s) => s.trim())
       .includes(uid);
 
-    const userData = {
-      uid,
-      name: profile.displayName,
-      email: email || '',
-      avatar: profile.pictureUrl || '',
-      isAdmin,
-      lineUserId: profile.userId,
-      provider: 'line',
-      createdAt: Date.now(),
-    };
-
-    const db = adminDb();
-    const userRef = db.ref(`users/${uid}`);
-    const existing = await userRef.get();
-
-    if (existing.exists()) {
-      const { createdAt, ...rest } = userData;
-      await userRef.set({ ...existing.val(), ...rest });
-    } else {
-      await userRef.set(userData);
-    }
-
-    // ── Step 5: 建立 Firebase Custom Token ──
     const customToken = await adminAuth().createCustomToken(uid, {
-      name: profile.displayName,
       lineUserId: profile.userId,
+      lineName: profile.displayName,
+      lineAvatar: profile.pictureUrl || '',
+      lineEmail: email,
       isAdmin,
     });
 
-    // ── Step 6: 導回前端，帶上 custom token ──
+    // ── Step 5: 導回前端 ──
     const redirectUrl = new URL('/auth/line', req.url);
     redirectUrl.searchParams.set('token', customToken);
     return NextResponse.redirect(redirectUrl);
