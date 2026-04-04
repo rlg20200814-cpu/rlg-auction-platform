@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth, adminDb } from '@/lib/firebase/admin';
+import crypto from 'crypto';
 
 interface LineTokenResponse {
   access_token: string;
@@ -17,13 +18,11 @@ interface LineProfile {
   statusMessage?: string;
 }
 
-interface LineEmailResponse {
-  email?: string;
-}
-
 /**
  * GET /api/auth/line/callback
  * LINE OAuth callback — 取得 profile → 建立 Firebase Custom Token → 導回前端
+ *
+ * CSRF 驗證：state 格式為 {timestamp}.{hmac}，用 LINE_CHANNEL_SECRET 驗簽
  */
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -31,14 +30,32 @@ export async function GET(req: NextRequest) {
   const state = searchParams.get('state');
   const error = searchParams.get('error');
 
-  // 用戶拒絕授權
   if (error || !code) {
     return NextResponse.redirect(new URL('/login?error=line_denied', req.url));
   }
 
-  // 驗證 CSRF state
-  const storedState = req.cookies.get('line_state')?.value;
-  if (!storedState || storedState !== state) {
+  // 驗證 HMAC state（取代 cookie 方式）
+  const secret = process.env.LINE_CHANNEL_SECRET;
+  if (!state || !secret) {
+    return NextResponse.redirect(new URL('/login?error=state_mismatch', req.url));
+  }
+
+  const parts = state.split('.');
+  if (parts.length !== 2) {
+    return NextResponse.redirect(new URL('/login?error=state_mismatch', req.url));
+  }
+
+  const [timestamp, receivedHmac] = parts;
+  const expectedHmac = crypto.createHmac('sha256', secret).update(timestamp).digest('hex');
+
+  // 驗簽 + 檢查 10 分鐘內有效
+  const isValidHmac = crypto.timingSafeEqual(
+    Buffer.from(receivedHmac, 'hex'),
+    Buffer.from(expectedHmac, 'hex')
+  );
+  const isExpired = Date.now() - parseInt(timestamp) > 10 * 60 * 1000;
+
+  if (!isValidHmac || isExpired) {
     return NextResponse.redirect(new URL('/login?error=state_mismatch', req.url));
   }
 
@@ -100,7 +117,6 @@ export async function GET(req: NextRequest) {
       createdAt: Date.now(),
     };
 
-    // 寫入 Realtime Database（若已存在則保留 createdAt）
     const db = adminDb();
     const userRef = db.ref(`users/${uid}`);
     const existing = await userRef.get();
@@ -122,11 +138,7 @@ export async function GET(req: NextRequest) {
     // ── Step 6: 導回前端，帶上 custom token ──
     const redirectUrl = new URL('/auth/line', req.url);
     redirectUrl.searchParams.set('token', customToken);
-
-    // 清除 state cookie
-    const response = NextResponse.redirect(redirectUrl);
-    response.cookies.delete('line_state');
-    return response;
+    return NextResponse.redirect(redirectUrl);
   } catch (err) {
     console.error('LINE callback error:', err);
     return NextResponse.redirect(new URL('/login?error=line_failed', req.url));

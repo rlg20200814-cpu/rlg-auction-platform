@@ -4,20 +4,26 @@ import crypto from 'crypto';
 /**
  * GET /api/auth/line
  * 將用戶重導向到 LINE OAuth 授權頁面
+ *
+ * CSRF 防護：改用 HMAC 簽名 state，不依賴 cookie
+ * 格式：{timestamp}.{hmac}
  */
 export async function GET(req: NextRequest) {
   const channelId = process.env.LINE_CHANNEL_ID;
   const callbackUrl = process.env.LINE_CALLBACK_URL;
+  const secret = process.env.LINE_CHANNEL_SECRET;
 
-  if (!channelId || !callbackUrl) {
+  if (!channelId || !callbackUrl || !secret) {
     return NextResponse.json(
       { error: 'LINE Login 未設定，請檢查環境變數' },
       { status: 500 }
     );
   }
 
-  // CSRF 防護 state token
-  const state = crypto.randomBytes(16).toString('hex');
+  // 用 timestamp + HMAC 簽名取代 cookie-based state
+  const timestamp = Date.now().toString();
+  const hmac = crypto.createHmac('sha256', secret).update(timestamp).digest('hex');
+  const state = `${timestamp}.${hmac}`;
 
   const params = new URLSearchParams({
     response_type: 'code',
@@ -25,20 +31,9 @@ export async function GET(req: NextRequest) {
     redirect_uri: callbackUrl,
     state,
     scope: 'profile openid email',
-    bot_prompt: 'aggressive', // 自動邀請加入官方帳號為好友
+    bot_prompt: 'aggressive',
   });
 
   const lineAuthUrl = `https://access.line.me/oauth2/v2.1/authorize?${params}`;
-
-  // 將 state 存入 cookie（HttpOnly）以便 callback 驗證
-  const response = NextResponse.redirect(lineAuthUrl);
-  response.cookies.set('line_state', state, {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',
-    maxAge: 600, // 10 分鐘
-    path: '/',
-  });
-
-  return response;
+  return NextResponse.redirect(lineAuthUrl);
 }
