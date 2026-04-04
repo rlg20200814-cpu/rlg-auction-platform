@@ -19,8 +19,9 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  // 從請求 URL 動態計算 callback URL，確保與 callback route 完全一致
-  const callbackUrl = new URL('/api/auth/line/callback', req.url).toString();
+  // 使用 NEXT_PUBLIC_SITE_URL（build-time baked）確保與 LINE Console 登記的 URL 完全一致
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(req.url).origin;
+  const callbackUrl = `${siteUrl}/api/auth/line/callback`;
 
   // 用 timestamp + HMAC 簽名取代 cookie-based state
   const timestamp = Date.now().toString();
