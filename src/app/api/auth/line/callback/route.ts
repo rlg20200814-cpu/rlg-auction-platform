@@ -61,13 +61,16 @@ export async function GET(req: NextRequest) {
 
   try {
     // ── Step 1: 換取 Access Token ──
+    const callbackUrl = (process.env.LINE_CALLBACK_URL || '').trim();
+    console.log('[LINE callback] redirect_uri being sent:', JSON.stringify(callbackUrl));
+
     const tokenRes = await fetch('https://api.line.me/oauth2/v2.1/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         code,
-        redirect_uri: process.env.LINE_CALLBACK_URL!,
+        redirect_uri: callbackUrl,
         client_id: process.env.LINE_CHANNEL_ID!,
         client_secret: process.env.LINE_CHANNEL_SECRET!,
       }),
