@@ -12,7 +12,9 @@ function getAdminApp(): App {
   // 優先用 base64 編碼版本（避免 Vercel 環境 \n 格式問題）
   const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY_BASE64
     ? Buffer.from(process.env.FIREBASE_ADMIN_PRIVATE_KEY_BASE64, 'base64').toString('utf-8')
-    : process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, '\n');
+    : (process.env.FIREBASE_ADMIN_PRIVATE_KEY || '')
+        .replace(/^["']|["']$/g, '')
+        .replace(/\\n/g, '\n');
 
   return initializeApp({
     credential: cert({
