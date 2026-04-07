@@ -55,7 +55,10 @@ function getPrivateKey(): string {
   if (process.env.FIREBASE_ADMIN_PRIVATE_KEY_BASE64) {
     return Buffer.from(process.env.FIREBASE_ADMIN_PRIVATE_KEY_BASE64, 'base64').toString('utf-8');
   }
-  return (process.env.FIREBASE_ADMIN_PRIVATE_KEY || '').replace(/\\n/g, '\n');
+  // 移除 Vercel 環境變數可能多帶的首尾引號（從 JSON 複製貼上時常見問題）
+  return (process.env.FIREBASE_ADMIN_PRIVATE_KEY || '')
+    .replace(/^["']|["']$/g, '')
+    .replace(/\\n/g, '\n');
 }
 
 /**
