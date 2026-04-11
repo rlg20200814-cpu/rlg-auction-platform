@@ -15,53 +15,6 @@ interface LineProfile {
 }
 
 /**
- * 手動用 Node crypto 建立 Firebase Custom Token（RS256 JWT）
- * 繞過 Firebase Admin SDK createCustomToken 的 OpenSSL 相容問題
- */
-function createFirebaseCustomToken(
-  uid: string,
-  claims: Record<string, unknown>,
-  clientEmail: string,
-  privateKey: string
-): string {
-  const now = Math.floor(Date.now() / 1000);
-
-  const header = { alg: 'RS256', typ: 'JWT' };
-  const payload = {
-    iss: clientEmail,
-    sub: clientEmail,
-    aud: 'https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit',
-    iat: now,
-    exp: now + 3600,
-    uid,
-    claims,
-  };
-
-  const b64 = (obj: object) =>
-    Buffer.from(JSON.stringify(obj)).toString('base64url');
-
-  const signingInput = `${b64(header)}.${b64(payload)}`;
-  const sign = crypto.createSign('RSA-SHA256');
-  sign.update(signingInput);
-  const signature = sign.sign(privateKey, 'base64url');
-
-  return `${signingInput}.${signature}`;
-}
-
-/**
- * 取得格式正確的 PEM 私鑰（支援 base64 和 \n 兩種儲存方式）
- */
-function getPrivateKey(): string {
-  if (process.env.FIREBASE_ADMIN_PRIVATE_KEY_BASE64) {
-    return Buffer.from(process.env.FIREBASE_ADMIN_PRIVATE_KEY_BASE64, 'base64').toString('utf-8');
-  }
-  // 移除 Vercel 環境變數可能多帶的首尾引號（從 JSON 複製貼上時常見問題）
-  return (process.env.FIREBASE_ADMIN_PRIVATE_KEY || '')
-    .replace(/^["']|["']$/g, '')
-    .replace(/\\n/g, '\n');
-}
-
-/**
  * GET /api/auth/line/callback
  */
 export async function GET(req: NextRequest) {
@@ -81,7 +34,7 @@ export async function GET(req: NextRequest) {
 
   const parts = state.split('.');
   if (parts.length !== 2) {
-    console.error('[LINE callback] state format invalid, parts:', parts.length, 'state:', state.slice(0, 80));
+    console.error('[LINE callback] state format invalid, parts:', parts.length);
     return NextResponse.redirect(new URL('/login?error=state_mismatch', req.url));
   }
 
@@ -92,9 +45,7 @@ export async function GET(req: NextRequest) {
   try {
     const receivedBuf = Buffer.from(receivedHmac, 'hex');
     const expectedBuf = Buffer.from(expectedHmac, 'hex');
-    if (receivedBuf.length !== expectedBuf.length) {
-      console.error('[LINE callback] HMAC length mismatch:', receivedBuf.length, '!=', expectedBuf.length, 'receivedHmac:', receivedHmac.slice(0, 20));
-    } else {
+    if (receivedBuf.length === expectedBuf.length) {
       isValidHmac = crypto.timingSafeEqual(receivedBuf, expectedBuf);
     }
   } catch (e) {
@@ -104,7 +55,7 @@ export async function GET(req: NextRequest) {
   const isExpired = Date.now() - parseInt(timestamp) > 30 * 60 * 1000;
 
   if (!isValidHmac || isExpired) {
-    console.error('[LINE callback] state invalid. isValidHmac:', isValidHmac, 'isExpired:', isExpired, 'receivedHmac len:', receivedHmac.length, 'expectedHmac len:', expectedHmac.length);
+    console.error('[LINE callback] state invalid. isValidHmac:', isValidHmac, 'isExpired:', isExpired);
     return NextResponse.redirect(new URL('/login?error=state_mismatch', req.url));
   }
 
@@ -151,26 +102,21 @@ export async function GET(req: NextRequest) {
       email = payload.email || '';
     } catch {}
 
-    // ── Step 4: 建立 Firebase Custom Token（手動簽 JWT）──
+    // ── Step 4: 用 Firebase Admin SDK 建立 Custom Token（自動加入 kid）──
     const uid = `line:${profile.userId}`;
     const isAdmin = (process.env.NEXT_PUBLIC_ADMIN_UIDS || '')
       .split(',')
       .map((s) => s.trim())
       .includes(uid);
 
-    const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
-    const privateKey = getPrivateKey();
-
-    if (!clientEmail || !privateKey) {
-      throw new Error('Firebase Admin credentials not configured');
-    }
-
-    const customToken = createFirebaseCustomToken(
-      uid,
-      { lineUserId: profile.userId, lineName: profile.displayName, lineAvatar: profile.pictureUrl || '', lineEmail: email, isAdmin },
-      clientEmail,
-      privateKey
-    );
+    const { adminAuth } = await import('@/lib/firebase/admin');
+    const customToken = await adminAuth().createCustomToken(uid, {
+      lineUserId: profile.userId,
+      lineName: profile.displayName,
+      lineAvatar: profile.pictureUrl || '',
+      lineEmail: email,
+      isAdmin,
+    });
 
     // ── Step 5: 發送 CRM 事件（user_registered 或 user_logged_in）──
     try {
