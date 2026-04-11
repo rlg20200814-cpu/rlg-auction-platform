@@ -104,16 +104,33 @@ export async function placeBid(
     // ── Record bid in bid log (non-atomic, best-effort) ──
     const bidsRef = ref(db, `bids/${auctionId}`);
     const newBidRef = push(bidsRef);
+    const bidTimestamp = Date.now();
     await set(newBidRef, {
       userId,
       userName,
       userAvatar: userAvatar || '',
       amount: bidAmount,
-      timestamp: Date.now(),
+      timestamp: bidTimestamp,
     });
 
-    // ── Webhook notification (fire and forget) ──
-    triggerBidWebhook(auctionId, userId, userName, bidAmount).catch(() => {});
+    // ── 取得 bidCount 以便 payload 完整 ──
+    const auctionSnap = await get(ref(db, `auctions/${auctionId}`));
+    const auctionData = auctionSnap.val();
+
+    // ── 送出 bid_placed 事件（透過 /api/events 或直接 sendEvent）──
+    // 在 client-side context：call /api/events（由 BidForm 呼叫）
+    // 在 server-side context：直接 sendEvent（已在 bids/route.ts）
+    triggerBidWebhook({
+      auctionId,
+      userId,
+      userName,
+      bidAmount,
+      bidCount: auctionData?.bidCount || 1,
+      productName: auctionData?.title || '',
+      category: auctionData?.category || '',
+      isExtended: transactionResult.extended || false,
+      newEndTime: transactionResult.newEndTime || 0,
+    }).catch(() => {});
 
     return {
       success: true,
@@ -187,28 +204,42 @@ export async function getUserBids(userId: string): Promise<Bid[]> {
 }
 
 // =============================================
-// Webhook trigger (n8n / LINE Bot support)
+// Webhook trigger — 送出 bid_placed 事件到 /api/events
 // =============================================
 
-async function triggerBidWebhook(
-  auctionId: string,
-  userId: string,
-  userName: string,
-  amount: number
-): Promise<void> {
-  const webhookUrl = process.env.NEXT_PUBLIC_WEBHOOK_URL;
-  if (!webhookUrl) return;
+interface BidWebhookParams {
+  auctionId: string;
+  userId: string;
+  userName: string;
+  bidAmount: number;
+  bidCount: number;
+  productName: string;
+  category: string;
+  isExtended: boolean;
+  newEndTime: number;
+}
 
-  await fetch(webhookUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      event: 'new_bid',
-      auctionId,
-      userId,
-      userName,
-      amount,
-      timestamp: Date.now(),
-    }),
-  });
+async function triggerBidWebhook(params: BidWebhookParams): Promise<void> {
+  // Server-side: 直接用 eventService（避免自己打自己）
+  if (typeof window === 'undefined') {
+    const { sendEvent, buildEvent } = await import('@/lib/eventService');
+    const event = buildEvent({
+      event_type: 'bid_placed',
+      source_channel: 'web',
+      platform_user_id: params.userId,
+      auction_id: params.auctionId,
+      product_name: params.productName,
+      category: params.category,
+      bid_amount: params.bidAmount,
+      bid_count_in_auction: params.bidCount,
+      is_extended: params.isExtended,
+      new_end_time: params.newEndTime,
+    } as Parameters<typeof buildEvent>[0]);
+    await sendEvent(event);
+    return;
+  }
+
+  // Client-side: 透過 /api/events（Firebase token 在 BidForm 傳入）
+  // 注意：client-side 的 bid_placed 由 BidForm.tsx 直接呼叫 /api/events
+  // 這裡的 triggerBidWebhook 在 client context 不做任何事（避免重複）
 }

@@ -132,22 +132,39 @@ export async function finalizeAuction(auctionId: string): Promise<void> {
     winnerName: auction.lastBidderName,
   });
 
-  // Trigger webhook if configured (fire and forget)
-  const webhookUrl = process.env.WEBHOOK_URL;
-  if (webhookUrl && typeof window === 'undefined') {
-    fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        event: 'auction_ended',
-        auctionId,
-        auctionTitle: auction.title,
-        winnerId: auction.lastBidderId,
-        winnerName: auction.lastBidderName,
-        finalPrice: auction.currentPrice,
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
+  // ── 送出 bid_won 事件（server-side only）──────────────────────────────
+  if (typeof window === 'undefined' && auction.lastBidderId) {
+    const { sendEvent, buildEvent } = await import('@/lib/eventService');
+    const endedAt = new Date().toISOString();
+
+    // 得標者：bid_won
+    const wonEvent = buildEvent({
+      event_type: 'bid_won',
+      source_channel: 'admin',
+      platform_user_id: auction.lastBidderId,
+      auction_id: auctionId,
+      product_name: auction.title,
+      category: auction.category || '',
+      final_price: auction.currentPrice,
+      total_bid_count: auction.bidCount,
+      ended_at: endedAt,
+    } as Parameters<typeof buildEvent>[0]);
+    sendEvent(wonEvent).catch(() => {});
+
+    // 得標者自動建立訂單事件
+    const orderId = `ORD-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${auctionId.slice(-4).toUpperCase()}`;
+    const orderEvent = buildEvent({
+      event_type: 'order_created',
+      source_channel: 'admin',
+      platform_user_id: auction.lastBidderId,
+      order_id: orderId,
+      auction_id: auctionId,
+      product_name: auction.title,
+      amount: auction.currentPrice,
+      payment_status: 'pending',
+      shipping_status: 'pending',
+    } as Parameters<typeof buildEvent>[0]);
+    sendEvent(orderEvent).catch(() => {});
   }
 }
 

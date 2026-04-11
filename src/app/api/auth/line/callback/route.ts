@@ -161,7 +161,40 @@ export async function GET(req: NextRequest) {
       privateKey
     );
 
-    // ── Step 5: 導回前端 ──
+    // ── Step 5: 發送 CRM 事件（user_registered 或 user_logged_in）──
+    try {
+      const { sendEvent, buildEvent } = await import('@/lib/eventService');
+      const { adminDb } = await import('@/lib/firebase/admin');
+      const userSnap = await adminDb().ref(`users/${uid}`).once('value');
+      const isNewUser = !userSnap.exists();
+
+      if (isNewUser) {
+        sendEvent(buildEvent({
+          event_type: 'user_registered',
+          source_channel: 'line',
+          platform_user_id: uid,
+          line_user_id: profile.userId,
+          name: profile.displayName,
+          email,
+          avatar: profile.pictureUrl || '',
+          register_method: 'line',
+        } as Parameters<typeof buildEvent>[0])).catch(() => {});
+      } else {
+        sendEvent(buildEvent({
+          event_type: 'user_logged_in',
+          source_channel: 'line',
+          platform_user_id: uid,
+          line_user_id: profile.userId,
+          login_method: 'line',
+          name: profile.displayName,
+          email,
+        } as Parameters<typeof buildEvent>[0])).catch(() => {});
+      }
+    } catch {
+      // CRM 事件失敗不影響登入流程
+    }
+
+    // ── Step 6: 導回前端 ──
     const redirectUrl = new URL('/auth/line', req.url);
     redirectUrl.searchParams.set('token', customToken);
     return NextResponse.redirect(redirectUrl);
