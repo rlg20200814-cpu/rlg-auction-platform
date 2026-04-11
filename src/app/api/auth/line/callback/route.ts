@@ -81,19 +81,30 @@ export async function GET(req: NextRequest) {
 
   const parts = state.split('.');
   if (parts.length !== 2) {
+    console.error('[LINE callback] state format invalid, parts:', parts.length, 'state:', state.slice(0, 80));
     return NextResponse.redirect(new URL('/login?error=state_mismatch', req.url));
   }
 
   const [timestamp, receivedHmac] = parts;
   const expectedHmac = crypto.createHmac('sha256', secret).update(timestamp).digest('hex');
 
-  const isValidHmac = crypto.timingSafeEqual(
-    Buffer.from(receivedHmac, 'hex'),
-    Buffer.from(expectedHmac, 'hex')
-  );
+  let isValidHmac = false;
+  try {
+    const receivedBuf = Buffer.from(receivedHmac, 'hex');
+    const expectedBuf = Buffer.from(expectedHmac, 'hex');
+    if (receivedBuf.length !== expectedBuf.length) {
+      console.error('[LINE callback] HMAC length mismatch:', receivedBuf.length, '!=', expectedBuf.length, 'receivedHmac:', receivedHmac.slice(0, 20));
+    } else {
+      isValidHmac = crypto.timingSafeEqual(receivedBuf, expectedBuf);
+    }
+  } catch (e) {
+    console.error('[LINE callback] timingSafeEqual threw:', e);
+  }
+
   const isExpired = Date.now() - parseInt(timestamp) > 30 * 60 * 1000;
 
   if (!isValidHmac || isExpired) {
+    console.error('[LINE callback] state invalid. isValidHmac:', isValidHmac, 'isExpired:', isExpired, 'receivedHmac len:', receivedHmac.length, 'expectedHmac len:', expectedHmac.length);
     return NextResponse.redirect(new URL('/login?error=state_mismatch', req.url));
   }
 
