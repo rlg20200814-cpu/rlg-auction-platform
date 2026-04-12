@@ -75,25 +75,31 @@ export async function signOut(): Promise<void> {
 export async function syncUserToDb(firebaseUser: FirebaseUser): Promise<User> {
   const userRef = ref(db, `users/${firebaseUser.uid}`);
   const snapshot = await get(userRef);
+  const existing = snapshot.exists() ? snapshot.val() : null;
+
+  // 優先使用 Firebase Auth 的 photoURL；
+  // 若為空（例如 LINE custom token），保留 DB 裡已存的頭貼，避免覆蓋
+  const avatar =
+    firebaseUser.photoURL ||
+    existing?.avatar ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(firebaseUser.displayName || existing?.name || 'U')}&background=0A0A0A&color=FAFAFA`;
+
+  const name = firebaseUser.displayName || existing?.name || '用戶';
+  const email = firebaseUser.email || existing?.email || '';
 
   const userData: User = {
     uid: firebaseUser.uid,
-    name: firebaseUser.displayName || '用戶',
-    email: firebaseUser.email || '',
-    avatar: firebaseUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(firebaseUser.displayName || 'U')}&background=0A0A0A&color=FAFAFA`,
+    name,
+    email,
+    avatar,
     isAdmin: isAdminUid(firebaseUser.uid),
-    createdAt: snapshot.exists() ? snapshot.val().createdAt : Date.now(),
+    createdAt: existing?.createdAt ?? Date.now(),
   };
 
-  if (!snapshot.exists()) {
+  if (!existing) {
     await set(userRef, userData);
   } else {
-    // Update mutable fields
-    await update(userRef, {
-      name: userData.name,
-      email: userData.email,
-      avatar: userData.avatar,
-    });
+    await update(userRef, { name, email, avatar });
   }
 
   return userData;
