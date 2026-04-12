@@ -12,15 +12,15 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'BidNow — 即時競標平台',
-    template: '%s | BidNow',
+    default: 'RLG REPTILE — 即時競標平台',
+    template: '%s | RLG REPTILE',
   },
-  description: '即時線上競標平台，稀有商品即時競標，快速出價，安全成交。',
-  keywords: ['競標', '拍賣', '線上競標', 'auction', '即時競標'],
+  description: 'RLG REPTILE 即時線上競標平台，稀有爬蟲即時競標，快速出價，安全成交。',
+  keywords: ['競標', '拍賣', '線上競標', 'auction', '即時競標', 'RLG', '爬蟲', 'reptile'],
   openGraph: {
     type: 'website',
     locale: 'zh_TW',
-    siteName: 'BidNow',
+    siteName: 'RLG REPTILE',
   },
 };
 

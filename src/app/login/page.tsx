@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { signInWithEmail, signInWithGoogle, registerWithEmail, getGoogleRedirectResult } from '@/lib/firebase/auth';
 import LineLoginButton from '@/components/auth/LineLoginButton';
-import { Gavel, Mail, Lock, User, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import Image from 'next/image';
+import { Mail, Lock, User, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { cn } from '@/lib/utils';
 
@@ -65,7 +66,7 @@ function LoginContent() {
           return;
         }
         await registerWithEmail(form.email, form.password, form.name);
-        toast.success('註冊成功！歡迎加入 BidNow');
+        toast.success('註冊成功！歡迎加入 RLG REPTILE');
       }
       router.push('/');
     } catch (err: any) {
@@ -206,9 +207,8 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-brand-black">
       {/* Logo */}
-      <Link href="/" className="flex items-center gap-2 mb-8 font-bold text-xl">
-        <Gavel className="w-6 h-6 text-brand-accent" strokeWidth={2.5} />
-        BidNow
+      <Link href="/" className="flex items-center mb-8">
+        <Image src="/logo.png" alt="RLG REPTILE" width={120} height={44} className="object-contain" />
       </Link>
 
       <Suspense

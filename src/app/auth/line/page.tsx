@@ -6,7 +6,7 @@ import { signInWithCustomToken } from 'firebase/auth';
 import { ref, get, set, update } from 'firebase/database';
 import { auth, db } from '@/lib/firebase/config';
 import { isAdminUid } from '@/lib/firebase/auth';
-import { Gavel } from 'lucide-react';
+import Image from 'next/image';
 import toast from 'react-hot-toast';
 
 function LineAuthContent() {
@@ -106,7 +106,7 @@ function LineAuthContent() {
 export default function LineAuthPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-brand-black">
-      <Gavel className="w-10 h-10 text-brand-accent mb-6" strokeWidth={2.5} />
+      <Image src="/logo.png" alt="RLG REPTILE" width={120} height={44} className="object-contain mb-6" />
       <Suspense
         fallback={
           <div className="w-8 h-8 border-2 border-brand-gray-700 border-t-brand-accent rounded-full animate-spin" />

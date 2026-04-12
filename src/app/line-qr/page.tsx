@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import LineQRCode from '@/components/LineQRCode';
-import { Gavel } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
@@ -18,9 +18,8 @@ export default function LineQRPage() {
   return (
     <div className="min-h-screen bg-brand-black flex flex-col items-center justify-center px-4 py-12">
       {/* Header */}
-      <Link href="/" className="flex items-center gap-2 mb-10 font-bold text-2xl">
-        <Gavel className="w-7 h-7 text-brand-accent" strokeWidth={2.5} />
-        BidNow
+      <Link href="/" className="flex items-center mb-10">
+        <Image src="/logo.png" alt="RLG REPTILE" width={140} height={52} className="object-contain" />
       </Link>
 
       <div className="w-full max-w-md space-y-6">

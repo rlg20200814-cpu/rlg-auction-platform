@@ -4,7 +4,8 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { Gavel, LayoutGrid, Plus, Settings, ArrowLeft } from 'lucide-react';
+import Image from 'next/image';
+import { LayoutGrid, Plus, Settings, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 
@@ -36,9 +37,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="min-h-screen bg-brand-black flex">
       {/* Sidebar */}
       <aside className="hidden md:flex flex-col w-56 border-r border-brand-gray-800 p-4 sticky top-0 h-screen">
-        <div className="flex items-center gap-2 mb-8 font-bold text-base">
-          <Gavel className="w-5 h-5 text-brand-accent" strokeWidth={2.5} />
-          <span>BidNow Admin</span>
+        <div className="flex items-center gap-2 mb-8">
+          <Image src="/logo.png" alt="RLG REPTILE" width={100} height={36} className="object-contain" />
+          <span className="text-xs text-brand-gray-500 font-medium">Admin</span>
         </div>
 
         <nav className="space-y-1 flex-1">
@@ -70,9 +71,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Mobile header */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-brand-black border-b border-brand-gray-800 px-4 h-14 flex items-center justify-between">
-        <div className="flex items-center gap-2 font-bold text-sm">
-          <Gavel className="w-4 h-4 text-brand-accent" />
-          Admin
+        <div className="flex items-center gap-2">
+          <Image src="/logo.png" alt="RLG REPTILE" width={70} height={26} className="object-contain" />
+          <span className="text-xs text-brand-gray-500">Admin</span>
         </div>
         <div className="flex items-center gap-2">
           {navItems.map(({ href, label, icon: Icon }) => (
