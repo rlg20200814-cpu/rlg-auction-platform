@@ -52,12 +52,17 @@ export async function GET(req: NextRequest) {
     console.error('[LINE callback] timingSafeEqual threw:', e);
   }
 
-  const isExpired = Date.now() - parseInt(timestamp) > 2 * 60 * 60 * 1000; // 2 小時
+  const tsNum = parseInt(timestamp);
+  const ageMs = Date.now() - tsNum;
+  const isExpired = ageMs > 2 * 60 * 60 * 1000; // 2 小時
+
+  console.log('[LINE callback] state check — isValidHmac:', isValidHmac, 'ageMs:', ageMs, 'isExpired:', isExpired);
 
   if (!isValidHmac || isExpired) {
-    console.error('[LINE callback] state invalid. isValidHmac:', isValidHmac, 'isExpired:', isExpired);
+    console.error('[LINE callback] state REJECTED. isValidHmac:', isValidHmac, 'isExpired:', isExpired, 'ageMs:', ageMs);
     return NextResponse.redirect(new URL('/login?error=state_mismatch', req.url));
   }
+  console.log('[LINE callback] state OK, proceeding with LINE token exchange');
 
   try {
     // ── Step 1: 換取 Access Token ──
