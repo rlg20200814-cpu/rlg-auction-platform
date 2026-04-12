@@ -127,8 +127,12 @@ export async function GET(req: NextRequest) {
     try {
       const { sendEvent, buildEvent } = await import('@/lib/eventService');
       const { adminDb } = await import('@/lib/firebase/admin');
-      const userSnap = await adminDb().ref(`users/${uid}`).once('value');
-      const isNewUser = !userSnap.exists();
+      // 加 3 秒 timeout，避免 DB 連線問題導致 function hang
+      const userSnap = await Promise.race([
+        adminDb().ref(`users/${uid}`).once('value'),
+        new Promise<null>((_, reject) => setTimeout(() => reject(new Error('DB timeout')), 3000)),
+      ]);
+      const isNewUser = !userSnap?.exists();
 
       if (isNewUser) {
         sendEvent(buildEvent({
