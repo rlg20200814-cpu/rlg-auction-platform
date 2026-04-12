@@ -11,6 +11,7 @@ import type { Auction } from '@/types';
 
 const CATEGORIES = ['活體', '爬箱', '周邊', '燈具'];
 const CONDITIONS = ['全新', '二手'];
+const AGE_CLASSES = ['幼體', '亞成體', '成體'];
 
 export default function EditAuctionPage() {
   const { id } = useParams<{ id: string }>();
@@ -23,6 +24,7 @@ export default function EditAuctionPage() {
     description: '',
     category: '',
     condition: '',
+    ageClass: '',
     startPrice: '0',
     minIncrement: '100',
     startTime: '',
@@ -40,6 +42,7 @@ export default function EditAuctionPage() {
         description: data.description || '',
         category: data.category || '其他',
         condition: data.condition || '全新',
+        ageClass: data.ageClass || '',
         startPrice: String(data.startPrice),
         minIncrement: String(data.minIncrement),
         startTime: new Date(data.startTime).toISOString().slice(0, 16),
@@ -64,6 +67,7 @@ export default function EditAuctionPage() {
         description: form.description.trim(),
         category: form.category,
         condition: form.condition,
+        ageClass: form.ageClass,
         startPrice: parseInt(form.startPrice) || 0,
         minIncrement: parseInt(form.minIncrement) || 100,
         startTime: new Date(form.startTime).getTime(),
@@ -118,6 +122,16 @@ export default function EditAuctionPage() {
               <label className="text-xs text-brand-gray-500 mb-1.5 block">商品狀態</label>
               <select value={form.condition} onChange={(e) => set('condition', e.target.value)} className="input">
                 {CONDITIONS.map((c) => <option key={c}>{c}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-brand-gray-500 mb-1.5 block">品相（活體適用）</label>
+              <select value={form.ageClass} onChange={(e) => set('ageClass', e.target.value)} className="input">
+                <option value="">— 不適用 —</option>
+                {AGE_CLASSES.map((c) => <option key={c}>{c}</option>)}
               </select>
             </div>
           </div>

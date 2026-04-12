@@ -184,6 +184,7 @@ export default function AuctionPage() {
               <div className="grid grid-cols-2 gap-3 pt-2">
                 {[
                   { label: '商品狀態', value: auction.condition || '未標示' },
+                  ...(auction.ageClass ? [{ label: '品相', value: auction.ageClass }] : []),
                   { label: '起標價', value: formatCurrency(auction.startPrice) },
                   { label: '最低加價', value: formatCurrency(auction.minIncrement) },
                   { label: '開始時間', value: formatDateTime(auction.startTime) },
@@ -255,6 +256,7 @@ export default function AuctionPage() {
                     <div className="grid grid-cols-2 gap-2 pt-2">
                       {[
                         { label: '商品狀態', value: auction.condition || '未標示' },
+                        ...(auction.ageClass ? [{ label: '品相', value: auction.ageClass }] : []),
                         { label: '起標價', value: formatCurrency(auction.startPrice) },
                         { label: '最低加價', value: formatCurrency(auction.minIncrement) },
                         { label: '運送方式', value: auction.shippingInfo || '面交 / 郵寄' },

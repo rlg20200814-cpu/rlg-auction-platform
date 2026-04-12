@@ -36,6 +36,7 @@ export interface Auction {
   createdAt: number;
   // Optional metadata
   condition?: string;         // 商品狀態：全新/二手/...
+  ageClass?: string;          // 品相：幼體/亞成體/成體
   shippingInfo?: string;
   tags?: string[];
 }
@@ -64,6 +65,7 @@ export interface CreateAuctionForm {
   startTime: string;          // datetime-local string
   endTime: string;
   condition: string;
+  ageClass: string;
   shippingInfo: string;
   images: File[];
 }

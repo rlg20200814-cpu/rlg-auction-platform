@@ -17,6 +17,7 @@ interface FormData {
   description: string;
   category: string;
   condition: string;
+  ageClass: string;
   startPrice: string;
   minIncrement: string;
   startTime: string;
@@ -26,6 +27,7 @@ interface FormData {
 
 const CATEGORIES = ['活體', '爬箱', '周邊', '燈具'];
 const CONDITIONS = ['全新', '二手'];
+const AGE_CLASSES = ['幼體', '亞成體', '成體'];
 
 export default function NewAuctionPage() {
   const { user } = useAuth();
@@ -44,6 +46,7 @@ export default function NewAuctionPage() {
     description: '',
     category: '活體',
     condition: '全新',
+    ageClass: '',
     startPrice: '0',
     minIncrement: '100',
     startTime: defaultStart,
@@ -106,6 +109,7 @@ export default function NewAuctionPage() {
         description: form.description.trim(),
         category: form.category,
         condition: form.condition,
+        ageClass: form.ageClass || '',
         images: imageUrls,
         startPrice,
         currentPrice: startPrice,
@@ -222,6 +226,16 @@ export default function NewAuctionPage() {
               <label className="text-xs text-brand-gray-500 mb-1.5 block">商品狀態</label>
               <select value={form.condition} onChange={(e) => set('condition', e.target.value)} className="input">
                 {CONDITIONS.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-brand-gray-500 mb-1.5 block">品相（活體適用）</label>
+              <select value={form.ageClass} onChange={(e) => set('ageClass', e.target.value)} className="input">
+                <option value="">— 不適用 —</option>
+                {AGE_CLASSES.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
           </div>
