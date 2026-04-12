@@ -36,6 +36,7 @@ export async function GET() {
     state,
     scope: 'profile openid email',
     bot_prompt: 'aggressive',
+    prompt: 'consent',  // 防止 LINE 快取舊的授權 URL
   });
 
   const lineAuthUrl = `https://access.line.me/oauth2/v2.1/authorize?${params}`;

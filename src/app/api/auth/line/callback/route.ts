@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
     console.error('[LINE callback] timingSafeEqual threw:', e);
   }
 
-  const isExpired = Date.now() - parseInt(timestamp) > 30 * 60 * 1000;
+  const isExpired = Date.now() - parseInt(timestamp) > 2 * 60 * 60 * 1000; // 2 小時
 
   if (!isValidHmac || isExpired) {
     console.error('[LINE callback] state invalid. isValidHmac:', isValidHmac, 'isExpired:', isExpired);
