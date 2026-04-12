@@ -10,35 +10,36 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          black: '#0A0A0A',
-          white: '#FAFAFA',
+          black: '#000000',
+          white: '#FFFFFF',
           gray: {
-            100: '#F4F4F4',
-            200: '#E5E5E5',
-            300: '#D4D4D4',
-            400: '#A3A3A3',
-            500: '#737373',
-            600: '#525252',
-            700: '#404040',
-            800: '#262626',
-            900: '#171717',
+            100: '#F0F0F0',
+            200: '#D6D6D6',
+            300: '#ADADAD',
+            400: '#858585',
+            500: '#5C5C5C',
+            600: '#3D3D3D',
+            700: '#2E2E2E',
+            800: '#1A1A1A',
+            900: '#0D0D0D',
           },
-          accent: '#E8FF00',  // neon yellow for CTA
+          accent: '#FFFFFF',  // pure white accent for B&W theme
         },
       },
       fontFamily: {
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
-        mono: ['var(--font-mono)', 'monospace'],
+        mono: ['var(--font-mono)', 'Courier New', 'monospace'],
       },
       animation: {
         'pulse-fast': 'pulse 0.8s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'bid-flash': 'bidFlash 0.5s ease-out',
         'slide-up': 'slideUp 0.3s ease-out',
         'fade-in': 'fadeIn 0.4s ease-out',
+        'scan': 'scan 4s linear infinite',
       },
       keyframes: {
         bidFlash: {
-          '0%': { backgroundColor: '#E8FF00', color: '#0A0A0A' },
+          '0%': { backgroundColor: 'rgba(255,255,255,0.15)', color: '#FFFFFF' },
           '100%': { backgroundColor: 'transparent', color: 'inherit' },
         },
         slideUp: {
@@ -48,6 +49,10 @@ const config: Config = {
         fadeIn: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
+        },
+        scan: {
+          '0%': { transform: 'translateY(-100%)' },
+          '100%': { transform: 'translateY(100vh)' },
         },
       },
     },

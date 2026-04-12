@@ -22,7 +22,7 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-brand-black/95 backdrop-blur-sm border-b border-brand-gray-800">
+    <header className="sticky top-0 z-50 bg-black/90 backdrop-blur-md border-b border-white/8">
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
@@ -56,8 +56,8 @@ export default function Header() {
                 </button>
               </div>
             ) : (
-              <Link href="/login" className="btn-primary py-2 px-4 text-sm ml-2">
-                登入 / 註冊
+              <Link href="/login" className="btn-primary py-1.5 px-4 text-xs ml-2">
+                LOGIN
               </Link>
             )
           )}
@@ -75,7 +75,7 @@ export default function Header() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="md:hidden border-t border-brand-gray-800 bg-brand-black px-4 py-3 space-y-1">
+        <div className="md:hidden border-t border-white/8 bg-black px-4 py-3 space-y-1">
           <Link href="/" className="flex items-center gap-2 py-2.5 text-sm text-brand-gray-300" onClick={() => setMenuOpen(false)}>
             所有競標
           </Link>
@@ -102,8 +102,8 @@ export default function Header() {
                 </button>
               </>
             ) : (
-              <Link href="/login" className="btn-primary w-full mt-2" onClick={() => setMenuOpen(false)}>
-                登入 / 註冊
+              <Link href="/login" className="btn-primary w-full mt-2 text-xs tracking-widest" onClick={() => setMenuOpen(false)}>
+                LOGIN
               </Link>
             )
           )}

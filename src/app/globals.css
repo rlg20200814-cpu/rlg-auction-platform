@@ -5,6 +5,8 @@
 @layer base {
   :root {
     --font-inter: 'Inter', system-ui, sans-serif;
+    --grid-color: rgba(255, 255, 255, 0.04);
+    --grid-size: 60px;
   }
 
   * {
@@ -19,6 +21,12 @@
   body {
     @apply bg-brand-black text-brand-white antialiased;
     font-family: var(--font-inter);
+    /* Cyberpunk grid background */
+    background-image:
+      linear-gradient(var(--grid-color) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    background-size: var(--grid-size) var(--grid-size);
+    background-attachment: fixed;
   }
 
   /* Custom scrollbar */
@@ -27,10 +35,11 @@
     height: 4px;
   }
   ::-webkit-scrollbar-track {
-    @apply bg-brand-gray-900;
+    background: #0D0D0D;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-brand-gray-700 rounded-full;
+    background: #2E2E2E;
+    border-radius: 2px;
   }
 
   /* Remove number input arrows */
@@ -47,81 +56,120 @@
   /* ── Buttons ── */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2
-           bg-brand-accent text-brand-black font-bold
-           px-6 py-3 rounded-lg
+           bg-white text-black font-bold
+           px-6 py-3
            transition-all duration-150 active:scale-95
-           disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100
-           text-sm md:text-base;
+           disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100
+           text-sm md:text-base tracking-widest uppercase;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
   }
 
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2
-           bg-brand-gray-800 text-brand-white font-medium
-           px-6 py-3 rounded-lg border border-brand-gray-700
-           hover:bg-brand-gray-700 transition-all duration-150 active:scale-95
-           disabled:opacity-40 disabled:cursor-not-allowed
-           text-sm md:text-base;
+           bg-transparent text-white font-medium
+           px-6 py-3 border border-white/20
+           hover:border-white/60 hover:bg-white/5
+           transition-all duration-150 active:scale-95
+           disabled:opacity-30 disabled:cursor-not-allowed
+           text-sm md:text-base tracking-wider;
   }
 
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2
-           text-brand-gray-400 font-medium px-4 py-2 rounded-lg
-           hover:text-brand-white hover:bg-brand-gray-800
-           transition-all duration-150 text-sm;
+           text-brand-gray-400 font-medium px-4 py-2
+           hover:text-white hover:bg-white/5
+           transition-all duration-150 text-sm tracking-wide;
   }
 
-  /* ── Cards ── */
+  /* ── Cards — RLG style ── */
   .card {
-    @apply bg-brand-gray-900 rounded-xl border border-brand-gray-800
+    @apply bg-brand-gray-900 border border-white/8
            overflow-hidden transition-all duration-200;
   }
 
   .card-hover {
-    @apply card hover:border-brand-gray-600 hover:-translate-y-1;
+    @apply card hover:border-white/25 hover:-translate-y-0.5;
   }
 
   /* ── Inputs ── */
   .input {
-    @apply w-full bg-brand-gray-800 border border-brand-gray-700
-           text-brand-white placeholder-brand-gray-500
-           px-4 py-3 rounded-lg text-sm
-           focus:outline-none focus:border-brand-white focus:ring-1 focus:ring-brand-white
-           transition-colors;
+    @apply w-full bg-black border border-white/15
+           text-white placeholder-brand-gray-500
+           px-4 py-3 text-sm
+           focus:outline-none focus:border-white/50 focus:ring-1 focus:ring-white/20
+           transition-colors tracking-wide;
   }
 
-  /* ── Tags ── */
+  /* ── Badges — B&W only ── */
   .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center px-2 py-0.5 text-xs font-medium tracking-widest uppercase;
   }
   .badge-active {
-    @apply badge bg-green-900/50 text-green-400 border border-green-800;
+    @apply badge bg-white text-black;
   }
   .badge-upcoming {
-    @apply badge bg-blue-900/50 text-blue-400 border border-blue-800;
+    @apply badge border border-white/40 text-white/80;
   }
   .badge-ended {
-    @apply badge bg-brand-gray-800 text-brand-gray-400 border border-brand-gray-700;
+    @apply badge border border-white/15 text-white/30;
   }
 
   /* ── Divider ── */
   .divider {
-    @apply border-t border-brand-gray-800 my-4;
+    @apply border-t border-white/8 my-4;
   }
 
   /* ── Price display ── */
   .price-display {
-    @apply font-mono font-bold text-brand-white tabular-nums;
+    @apply font-mono font-bold text-white tabular-nums tracking-tight;
   }
 
-  /* ── Bid flash animation ── */
+  /* ── Bid flash ── */
   .bid-flash {
     animation: bidFlash 1s ease-out;
+  }
+
+  /* ── Corner bracket decoration ── */
+  .rlg-corner {
+    position: relative;
+  }
+  .rlg-corner::before,
+  .rlg-corner::after {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-color: rgba(255,255,255,0.5);
+    border-style: solid;
+  }
+  .rlg-corner::before {
+    top: 0; left: 0;
+    border-width: 1px 0 0 1px;
+  }
+  .rlg-corner::after {
+    bottom: 0; right: 0;
+    border-width: 0 1px 1px 0;
   }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  .border-white\/8 {
+    border-color: rgba(255,255,255,0.08);
+  }
+  .border-white\/15 {
+    border-color: rgba(255,255,255,0.15);
+  }
+  .border-white\/25 {
+    border-color: rgba(255,255,255,0.25);
+  }
+  .border-white\/40 {
+    border-color: rgba(255,255,255,0.40);
+  }
+  .border-white\/50 {
+    border-color: rgba(255,255,255,0.50);
   }
 }
 
@@ -131,14 +179,40 @@
   100% { background-position: 200% 0; }
 }
 .skeleton {
-  background: linear-gradient(90deg, #262626 25%, #404040 50%, #262626 75%);
+  background: linear-gradient(90deg, #141414 25%, #222222 50%, #141414 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
-  border-radius: 4px;
 }
 
-/* ── Bid count flash ── */
+/* ── Bid flash ── */
 @keyframes bidFlash {
-  0% { background-color: rgba(232,255,0,0.2); }
+  0% { background-color: rgba(255,255,255,0.15); }
   100% { background-color: transparent; }
+}
+
+/* ── Cyberpunk scan line (subtle, fixed) ── */
+.cyber-scanline {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  animation: scan 6s linear infinite;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+@keyframes scan {
+  0% { top: -2px; opacity: 0; }
+  5% { opacity: 1; }
+  95% { opacity: 1; }
+  100% { top: 100vh; opacity: 0; }
+}
+
+/* ── RLG horizontal rule ── */
+.rlg-rule {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
 }

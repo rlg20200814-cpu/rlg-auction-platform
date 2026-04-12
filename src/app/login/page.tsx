@@ -205,7 +205,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-brand-black">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-black">
       {/* Logo */}
       <Link href="/" className="flex items-center mb-8">
         <Image src="/logo.png" alt="RLG REPTILE" width={120} height={44} className="object-contain" />
