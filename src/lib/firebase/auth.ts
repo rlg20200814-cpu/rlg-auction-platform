@@ -77,15 +77,14 @@ export async function syncUserToDb(firebaseUser: FirebaseUser): Promise<User> {
   const snapshot = await get(userRef);
   const existing = snapshot.exists() ? snapshot.val() : null;
 
-  // 優先使用 Firebase Auth 的 photoURL；
-  // 若為空（例如 LINE custom token），保留 DB 裡已存的頭貼，避免覆蓋
+  // 優先使用 Firebase Auth 的值；
+  // 若為空（LINE custom token 不帶 displayName / photoURL），保留 DB 裡已存的，避免覆蓋
+  const name = firebaseUser.displayName || existing?.name || '用戶';
+  const email = firebaseUser.email || existing?.email || '';
   const avatar =
     firebaseUser.photoURL ||
     existing?.avatar ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(firebaseUser.displayName || existing?.name || 'U')}&background=0A0A0A&color=FAFAFA`;
-
-  const name = firebaseUser.displayName || existing?.name || '用戶';
-  const email = firebaseUser.email || existing?.email || '';
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0A0A0A&color=FAFAFA`;
 
   const userData: User = {
     uid: firebaseUser.uid,
