@@ -135,7 +135,7 @@ export async function GET(req: NextRequest) {
       const isNewUser = !userSnap?.exists();
 
       if (isNewUser) {
-        sendEvent(buildEvent({
+        await sendEvent(buildEvent({
           event_type: 'user_registered',
           source_channel: 'line',
           platform_user_id: uid,
@@ -144,9 +144,9 @@ export async function GET(req: NextRequest) {
           email,
           avatar: profile.pictureUrl || '',
           register_method: 'line',
-        } as Parameters<typeof buildEvent>[0])).catch(() => {});
+        } as Parameters<typeof buildEvent>[0]));
       } else {
-        sendEvent(buildEvent({
+        await sendEvent(buildEvent({
           event_type: 'user_logged_in',
           source_channel: 'line',
           platform_user_id: uid,
@@ -154,10 +154,11 @@ export async function GET(req: NextRequest) {
           login_method: 'line',
           name: profile.displayName,
           email,
-        } as Parameters<typeof buildEvent>[0])).catch(() => {});
+        } as Parameters<typeof buildEvent>[0]));
       }
-    } catch {
-      // CRM 事件失敗不影響登入流程
+    } catch (crmErr) {
+      console.error('[LINE callback] CRM event failed:', crmErr);
+      // CRM 失敗不影響登入流程
     }
 
     // ── Step 6: 導回前端 ──
