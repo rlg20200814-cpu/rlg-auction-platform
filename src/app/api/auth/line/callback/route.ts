@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
 
   const tsNum = parseInt(timestamp);
   const ageMs = Date.now() - tsNum;
-  const isExpired = ageMs > 2 * 60 * 60 * 1000; // 2 小時
+  const isExpired = ageMs > 24 * 60 * 60 * 1000; // 24 小時
 
   console.log('[LINE callback] state check — isValidHmac:', isValidHmac, 'ageMs:', ageMs, 'isExpired:', isExpired);
 
