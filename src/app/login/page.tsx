@@ -132,12 +132,22 @@ function LoginContent() {
 
       {/* Google Login */}
       {inWebView ? (
-        <div className="flex items-start gap-2 bg-yellow-900/30 border border-yellow-700/50 text-yellow-300 rounded-lg px-4 py-3 text-sm mb-4">
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-          <div>
-            <div className="font-medium mb-1">Google 登入需在瀏覽器中使用</div>
-            <div className="text-xs text-yellow-400/80">請點右上角選單，選擇「在瀏覽器中開啟」，再使用 Google 登入。</div>
-          </div>
+        <div className="mb-4 space-y-2">
+          <button
+            type="button"
+            onClick={() => {
+              // 嘗試在外部瀏覽器開啟
+              window.open(window.location.href, '_blank');
+            }}
+            className="btn-secondary w-full gap-3"
+          >
+            <GoogleIcon />
+            使用 Google 登入
+          </button>
+          <p className="text-xs text-brand-gray-500 text-center leading-relaxed">
+            Google 登入需在外部瀏覽器使用。<br />
+            若點擊後未開啟，請點右上角 <span className="text-brand-gray-300">⋯</span> 選擇「在瀏覽器中開啟」。
+          </p>
         </div>
       ) : (
         <button
