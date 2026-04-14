@@ -99,6 +99,32 @@ export default function BidForm({ auction }: BidFormProps) {
           : '出價成功！你是目前最高出價者',
         { duration: 3000 }
       );
+
+      // 即時寫入 CRM bids 表
+      try {
+        const { getAuth } = await import('firebase/auth');
+        const idToken = await getAuth().currentUser?.getIdToken();
+        if (idToken) {
+          fetch('/api/events', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${idToken}`,
+            },
+            body: JSON.stringify({
+              event_type: 'bid_placed',
+              platform_user_id: user.uid,
+              auction_id: auction.id,
+              product_name: auction.title,
+              category: auction.category || '',
+              bid_amount: finalAmount,
+              bid_count_in_auction: (auction.bidCount || 0) + 1,
+              is_extended: result.extended || false,
+              new_end_time: result.newEndTime || auction.endTime,
+            }),
+          }).catch(() => {});
+        }
+      } catch { /* CRM 失敗不影響出價 */ }
     } else {
       toast.error(result.error || '出價失敗');
       setBidAmount(minBid);
