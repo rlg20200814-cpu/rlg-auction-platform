@@ -127,12 +127,19 @@ export async function GET(req: NextRequest) {
     try {
       const { sendEvent, buildEvent } = await import('@/lib/eventService');
       const { adminDb } = await import('@/lib/firebase/admin');
-      // 加 3 秒 timeout，避免 DB 連線問題導致 function hang
-      const userSnap = await Promise.race([
-        adminDb().ref(`users/${uid}`).once('value'),
-        new Promise<null>((_, reject) => setTimeout(() => reject(new Error('DB timeout')), 3000)),
-      ]);
-      const isNewUser = !userSnap?.exists();
+
+      // 判斷是否新用戶（DB timeout 時預設為 false，送 user_logged_in）
+      let isNewUser = false;
+      try {
+        const userSnap = await Promise.race([
+          adminDb().ref(`users/${uid}`).once('value'),
+          new Promise<null>((_, reject) => setTimeout(() => reject(new Error('DB timeout')), 3000)),
+        ]);
+        isNewUser = !userSnap?.exists();
+      } catch {
+        // DB timeout，保守處理：視為已有用戶
+        isNewUser = false;
+      }
 
       if (isNewUser) {
         await sendEvent(buildEvent({
@@ -158,7 +165,6 @@ export async function GET(req: NextRequest) {
       }
     } catch (crmErr) {
       console.error('[LINE callback] CRM event failed:', crmErr);
-      // CRM 失敗不影響登入流程
     }
 
     // ── Step 6: 導回前端 ──
