@@ -12,12 +12,22 @@ import { cn } from '@/lib/utils';
 
 type Mode = 'login' | 'register';
 
+function isWebView(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent;
+  // LINE, Facebook, Instagram, LIFF, Twitter app, WeChat, etc.
+  return /Line\/|FBAN|FBAV|Instagram|Twitter\/|MicroMessenger|WebView|wv\)/i.test(ua) ||
+    // iOS WebView: no Safari in UA but has AppleWebKit
+    (/iPhone|iPad|iPod/.test(ua) && !/Safari\//.test(ua) && /AppleWebKit/.test(ua));
+}
+
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const lineError = searchParams.get('error');
   const lineDetail = searchParams.get('detail');
   const [mode, setMode] = useState<Mode>('login');
+  const inWebView = isWebView();
 
   useEffect(() => {
     getGoogleRedirectResult().then((user) => {
@@ -121,14 +131,24 @@ function LoginContent() {
       </div>
 
       {/* Google Login */}
-      <button
-        onClick={handleGoogle}
-        disabled={loading}
-        className="btn-secondary w-full mb-4 gap-3"
-      >
-        <GoogleIcon />
-        使用 Google 登入
-      </button>
+      {inWebView ? (
+        <div className="flex items-start gap-2 bg-yellow-900/30 border border-yellow-700/50 text-yellow-300 rounded-lg px-4 py-3 text-sm mb-4">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          <div>
+            <div className="font-medium mb-1">Google 登入需在瀏覽器中使用</div>
+            <div className="text-xs text-yellow-400/80">請點右上角選單，選擇「在瀏覽器中開啟」，再使用 Google 登入。</div>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={handleGoogle}
+          disabled={loading}
+          className="btn-secondary w-full mb-4 gap-3"
+        >
+          <GoogleIcon />
+          使用 Google 登入
+        </button>
+      )}
 
       <div className="relative flex items-center gap-3 mb-4">
         <div className="flex-1 h-px bg-brand-gray-800" />

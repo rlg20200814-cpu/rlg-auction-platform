@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     source_channel: 'web',
   } as Omit<AnyEvent, 'event_id' | 'event_time' | 'platform'>);
 
-  sendEvent(event).catch(() => {}); // fire-and-forget
+  await sendEvent(event).catch(() => {}); // 必須 await，否則 Vercel 在 response 後終止 function
 
   return NextResponse.json({ ok: true, event_id: event.event_id });
 }
