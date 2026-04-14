@@ -18,30 +18,30 @@ function getSheets() {
 
 const HEADERS: Record<string, string[]> = {
   customers: [
-    'customer_id', 'platform_user_id', 'line_user_id', 'name', 'email',
-    'avatar', 'register_method', 'total_bid_count', 'total_win_count',
-    'total_order_count', 'total_spend', 'last_product', 'last_bid_at',
-    'score', 'level', 'customer_type', 'tag_1', 'tag_2', 'created_at',
+    '客戶編號', '平台用戶ID', 'LINE用戶ID', '姓名', '電子郵件',
+    '頭像', '註冊方式', '累計出價次數', '累計得標次數',
+    '累計成交次數', '累計消費金額', '最近商品', '最近出價時間',
+    '互動分數', '客戶等級', '客戶類型', '標籤1', '標籤2', '首次接觸時間',
   ],
   bids: [
-    'bid_id', 'event_id', 'customer_id', 'platform_user_id', 'auction_id',
-    'product_name', 'category', 'bid_amount', 'bid_count', 'is_winning',
-    'is_final_winner', 'final_price', 'bid_time', 'source_channel',
+    '出價編號', '事件ID', '客戶編號', '平台用戶ID', '競標ID',
+    '商品名稱', '商品分類', '出價金額', '本場出價次數', '是否領先',
+    '是否得標', '最終成交價', '出價時間', '來源管道',
   ],
   orders: [
-    'order_id', 'event_id', 'customer_id', 'platform_user_id', 'auction_id',
-    'product_name', 'amount', 'payment_status', 'payment_method', 'paid_at',
-    'shipping_status', 'tracking_number', 'carrier', 'after_service_status',
-    'rebuy_flag', 'created_at', 'operator',
+    '訂單編號', '事件ID', '客戶編號', '平台用戶ID', '競標ID',
+    '商品名稱', '金額', '付款狀態', '付款方式', '付款時間',
+    '出貨狀態', '追蹤號碼', '物流商', '售後服務狀態',
+    '回購標記', '建立時間', '處理人員',
   ],
   interactions: [
-    'interaction_id', 'event_id', 'customer_id', 'platform_user_id', 'type',
-    'auction_id', 'product_name', 'category', 'created_at',
+    '互動編號', '事件ID', '客戶編號', '平台用戶ID', '互動類型',
+    '競標ID', '商品名稱', '商品分類', '互動時間',
   ],
   tasks: [
-    'task_id', 'event_id', 'customer_id', 'platform_user_id', 'task_reason',
-    'auction_id', 'product_name', 'task_note', 'status', 'due_date',
-    'created_at', 'done_at',
+    '任務編號', '事件ID', '客戶編號', '平台用戶ID', '任務原因',
+    '競標ID', '商品名稱', '任務備註', '狀態', '截止日期',
+    '建立時間', '完成時間',
   ],
 };
 
