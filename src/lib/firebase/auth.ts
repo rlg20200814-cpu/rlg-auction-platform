@@ -76,6 +76,7 @@ export async function syncUserToDb(firebaseUser: FirebaseUser): Promise<User> {
   const userRef = ref(db, `users/${firebaseUser.uid}`);
   const snapshot = await get(userRef);
   const existing = snapshot.exists() ? snapshot.val() : null;
+  const isNewUser = !existing;
 
   // 優先使用 Firebase Auth 的值；
   // 若為空（LINE custom token 不帶 displayName / photoURL），保留 DB 裡已存的，避免覆蓋
@@ -95,10 +96,33 @@ export async function syncUserToDb(firebaseUser: FirebaseUser): Promise<User> {
     createdAt: existing?.createdAt ?? Date.now(),
   };
 
-  if (!existing) {
+  if (isNewUser) {
     await set(userRef, userData);
   } else {
     await update(userRef, { name, email, avatar });
+  }
+
+  // 判斷登入方式
+  const providerIds = firebaseUser.providerData.map((p) => p.providerId);
+  const loginMethod = providerIds.includes('google.com') ? 'google'
+    : providerIds.includes('password') ? 'email'
+    : 'line';
+
+  // LINE 登入由 callback route 處理，這裡只處理 Google / Email
+  if (loginMethod !== 'line') {
+    try {
+      const idToken = await firebaseUser.getIdToken();
+      fetch('/api/auth/sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ name, email, avatar, isNewUser, loginMethod }),
+      }).catch(() => {});
+    } catch {
+      // CRM 失敗不影響登入
+    }
   }
 
   return userData;
