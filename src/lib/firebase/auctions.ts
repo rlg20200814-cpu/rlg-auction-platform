@@ -149,7 +149,7 @@ export async function finalizeAuction(auctionId: string): Promise<void> {
       total_bid_count: auction.bidCount,
       ended_at: endedAt,
     } as Parameters<typeof buildEvent>[0]);
-    sendEvent(wonEvent).catch(() => {});
+    await sendEvent(wonEvent).catch(() => {});
 
     // 得標者自動建立訂單事件
     const orderId = `ORD-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${auctionId.slice(-4).toUpperCase()}`;
@@ -164,7 +164,7 @@ export async function finalizeAuction(auctionId: string): Promise<void> {
       payment_status: 'pending',
       shipping_status: 'pending',
     } as Parameters<typeof buildEvent>[0]);
-    sendEvent(orderEvent).catch(() => {});
+    await sendEvent(orderEvent).catch(() => {});
   }
 }
 

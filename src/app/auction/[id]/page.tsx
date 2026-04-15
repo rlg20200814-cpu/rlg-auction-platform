@@ -32,14 +32,34 @@ export default function AuctionPage() {
   useEffect(() => {
     if (!auction) return;
     if (prevBidCount > 0 && auction.bidCount > prevBidCount) {
-      // New bid from someone else — show subtle toast
-      const isMyBid = false; // We handle own bids in BidForm
       toast(`📢 新出價：${formatCurrency(auction.currentPrice)} — ${auction.lastBidderName}`, {
         duration: 2500,
       });
     }
     setPrevBidCount(auction.bidCount);
   }, [auction?.bidCount]);
+
+  // 倒數到 0 自動觸發結標
+  useEffect(() => {
+    if (!auction || auction.status !== 'active') return;
+    const remaining = auction.endTime - Date.now();
+    if (remaining <= 0) {
+      fetch('/api/auctions/finalize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ auctionId: auction.id }),
+      }).catch(() => {});
+      return;
+    }
+    const timer = setTimeout(() => {
+      fetch('/api/auctions/finalize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ auctionId: auction.id }),
+      }).catch(() => {});
+    }, remaining + 1000); // +1s 緩衝
+    return () => clearTimeout(timer);
+  }, [auction?.id, auction?.endTime, auction?.status]);
 
   if (loading) {
     return (
