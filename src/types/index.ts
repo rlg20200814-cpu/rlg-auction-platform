@@ -88,6 +88,43 @@ export interface ApiResponse<T = void> {
 }
 
 // =============================================
+// Retail Product Types
+// =============================================
+
+export type ProductStatus = 'available' | 'sold_out' | 'hidden';
+
+export interface Product {
+  id: string;
+  title: string;
+  description: string;
+  images: string[];
+  category: string;
+  price: number;
+  stock: number;               // 庫存數量，0 表示售完
+  status: ProductStatus;
+  sellerId: string;
+  sellerName: string;
+  condition?: string;          // 全新/二手
+  ageClass?: string;           // 幼體/亞成體/成體
+  shippingInfo?: string;
+  tags?: string[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface CreateProductForm {
+  title: string;
+  description: string;
+  category: string;
+  price: number;
+  stock: number;
+  condition: string;
+  ageClass: string;
+  shippingInfo: string;
+  images: File[];
+}
+
+// =============================================
 // Notification Types
 // =============================================
 

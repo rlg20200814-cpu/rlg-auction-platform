@@ -31,7 +31,9 @@ export default function Header() {
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-1">
-          <Link href="/" className="btn-ghost">所有競標</Link>
+          <Link href="/auction" className="btn-ghost">即時競標</Link>
+          <Link href="/shop" className="btn-ghost">零售商品</Link>
+          <Link href="/about" className="btn-ghost">關於我們</Link>
           {user?.isAdmin && (
             <Link href="/admin" className="btn-ghost">
               <Settings className="w-4 h-4" />
@@ -76,8 +78,14 @@ export default function Header() {
       {/* Mobile menu */}
       {menuOpen && (
         <div className="md:hidden border-t border-white/8 bg-black px-4 py-3 space-y-1">
-          <Link href="/" className="flex items-center gap-2 py-2.5 text-sm text-brand-gray-300" onClick={() => setMenuOpen(false)}>
-            所有競標
+          <Link href="/auction" className="flex items-center gap-2 py-2.5 text-sm text-brand-gray-300" onClick={() => setMenuOpen(false)}>
+            即時競標
+          </Link>
+          <Link href="/shop" className="flex items-center gap-2 py-2.5 text-sm text-brand-gray-300" onClick={() => setMenuOpen(false)}>
+            零售商品
+          </Link>
+          <Link href="/about" className="flex items-center gap-2 py-2.5 text-sm text-brand-gray-300" onClick={() => setMenuOpen(false)}>
+            關於我們
           </Link>
           {user?.isAdmin && (
             <Link href="/admin" className="flex items-center gap-2 py-2.5 text-sm text-brand-gray-300" onClick={() => setMenuOpen(false)}>
