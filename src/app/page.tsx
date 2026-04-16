@@ -171,9 +171,9 @@ export default function HomePage() {
                   sub: '親繁嚴選',
                 },
                 {
-                  value: '98.7%',
-                  label: '買家滿意度',
-                  sub: '口碑保證',
+                  value: '2022',
+                  label: '創立年份',
+                  sub: '深耕爬蟲市場',
                 },
                 {
                   value: '每週',
