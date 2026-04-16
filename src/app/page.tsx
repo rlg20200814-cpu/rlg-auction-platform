@@ -47,10 +47,10 @@ export default function HomePage() {
         >
           <div className="relative w-full h-full">
             <Image
-              src="https://images.pexels.com/photos/18909904/pexels-photo-18909904.jpeg?auto=compress&cs=tinysrgb&w=1920"
+              src="/hero.jpg"
               alt="Red Bearded Dragon — RLG Reptile"
               fill
-              className="object-cover object-center"
+              className="object-cover object-top"
               priority
             />
             {/* Fade-to-left overlay：讓圖片與左側文字自然融合 */}
