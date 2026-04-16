@@ -78,6 +78,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <span className="text-xs text-brand-gray-500">Admin</span>
         </div>
         <div className="flex items-center gap-2">
+          <Link href="/" className="btn-ghost p-2" aria-label="回主頁">
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
           {navItems.map(({ href, label, icon: Icon }) => (
             <Link key={href} href={href} className="btn-ghost p-2">
               <Icon className="w-4 h-4" />
