@@ -22,6 +22,14 @@ export default function AuctionPage() {
   const [currentImage, setCurrentImage] = useState(0);
   const [activeTab, setActiveTab] = useState<'bids' | 'info'>('bids');
   const [prevBidCount, setPrevBidCount] = useState(0);
+  const [initialEndTime, setInitialEndTime] = useState<number | null>(null);
+
+  // 記錄初始結標時間，用來偵測是否被延長
+  useEffect(() => {
+    if (auction && initialEndTime === null) {
+      setInitialEndTime(auction.endTime);
+    }
+  }, [auction?.id]);
 
   // Track view
   useEffect(() => {
@@ -231,7 +239,12 @@ export default function AuctionPage() {
             {/* Countdown */}
             {auction.status === 'active' && (
               <div className="card p-5">
-                <Countdown endTime={auction.endTime} size="lg" />
+                <Countdown
+                  endTime={auction.endTime}
+                  size="lg"
+                  wasExtended={initialEndTime !== null && auction.endTime > initialEndTime}
+                  showExtendedBadge
+                />
               </div>
             )}
 
