@@ -23,7 +23,8 @@ export default function Header() {
     setMenuOpen(false);
   };
 
-  const navLinks = [
+  const navLinks: { href: string; label: string; exact?: boolean }[] = [
+    { href: '/', label: 'HOME', exact: true },
     { href: '/auction', label: 'LIVE AUCTIONS' },
     { href: '/shop', label: 'SHOP NOW' },
     { href: '/about', label: 'ABOUT US' },
@@ -41,8 +42,9 @@ export default function Header() {
 
         {/* Desktop Nav — centered */}
         <nav className="hidden md:flex items-center gap-1 absolute left-1/2 -translate-x-1/2">
-          {navLinks.map(({ href, label }) => {
-            const active = pathname === href || (href !== '/' && pathname.startsWith(href.split('#')[0]));
+          {navLinks.map(({ href, label, exact }) => {
+            const base = href.split('#')[0];
+            const active = exact ? pathname === base : pathname.startsWith(base) && base !== '/';
             return (
               <Link
                 key={href}

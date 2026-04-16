@@ -8,6 +8,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'obs.line-apps.com' },
       { protocol: 'https', hostname: '*.line-scdn.net' },
       { protocol: 'https', hostname: 'images.unsplash.com' },
+      { protocol: 'https', hostname: 'images.pexels.com' },
     ],
   },
 };

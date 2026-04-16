@@ -40,39 +40,37 @@ export default function HomePage() {
       {/* ── HERO ── */}
       <section className="relative min-h-screen flex flex-col overflow-hidden">
 
-        {/* Right: Hero Image */}
-        {/* ↓ 將您的爬蟲主圖命名為 hero.jpg 放入 /public 資料夾即可替換 */}
+        {/* Right: Hero Image — 紅色鬆獅蜥 */}
         <div
           className="absolute inset-y-0 right-0 w-full md:w-[62%]"
           style={{ zIndex: 0 }}
         >
           <div className="relative w-full h-full">
             <Image
-              src="/hero.jpg"
-              alt="RLG Reptile"
+              src="https://images.pexels.com/photos/18909904/pexels-photo-18909904.jpeg?auto=compress&cs=tinysrgb&w=1920"
+              alt="Red Bearded Dragon — RLG Reptile"
               fill
               className="object-cover object-center"
               priority
-              onError={() => {/* fallback handled by CSS */}}
             />
-            {/* Fallback dark gradient when no image */}
+            {/* Fade-to-left overlay：讓圖片與左側文字自然融合 */}
             <div
               className="absolute inset-0"
               style={{
-                background: 'radial-gradient(ellipse at 70% 50%, #1a0000 0%, #0a0000 40%, #000 100%)',
+                background: 'linear-gradient(to right, #000 0%, #000 8%, rgba(0,0,0,0.65) 38%, rgba(0,0,0,0.05) 100%)',
               }}
             />
-            {/* Fade-to-left overlay */}
+            {/* 底部漸層 */}
             <div
               className="absolute inset-0"
               style={{
-                background: 'linear-gradient(to right, #000 0%, #000 10%, rgba(0,0,0,0.7) 40%, rgba(0,0,0,0.1) 100%)',
+                background: 'linear-gradient(to top, #000 0%, transparent 30%)',
               }}
             />
-            {/* Red tint overlay */}
+            {/* 紅色光暈 */}
             <div
-              className="absolute inset-0 opacity-20"
-              style={{ background: 'radial-gradient(ellipse at 60% 50%, #cc0000 0%, transparent 60%)' }}
+              className="absolute inset-0 opacity-25"
+              style={{ background: 'radial-gradient(ellipse at 65% 50%, #cc0000 0%, transparent 55%)' }}
             />
           </div>
         </div>
