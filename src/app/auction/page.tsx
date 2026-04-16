@@ -6,6 +6,7 @@ import AuctionCard from '@/components/auction/AuctionCard';
 import Header from '@/components/layout/Header';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { useAutoFinalize } from '@/hooks/useAutoFinalize';
 import type { Auction, AuctionStatus } from '@/types';
 
 type FilterTab = 'all' | AuctionStatus;
@@ -23,6 +24,9 @@ export default function AuctionListPage() {
     });
     return unsubscribe;
   }, []);
+
+  // 自動偵測並結標已過期競標
+  useAutoFinalize(auctions);
 
   const filtered = filter === 'all'
     ? auctions

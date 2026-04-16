@@ -10,6 +10,7 @@ import { Plus, Edit, Play, Square, Trophy, RefreshCw, TrendingUp, Clock, DollarS
 import toast from 'react-hot-toast';
 import type { Auction } from '@/types';
 import LineQRCode from '@/components/LineQRCode';
+import { useAutoFinalize } from '@/hooks/useAutoFinalize';
 
 export default function AdminPage() {
   const [auctions, setAuctions] = useState<Auction[]>([]);
@@ -43,6 +44,9 @@ export default function AdminPage() {
     await load();
     setActionLoading(null);
   };
+
+  // 自動偵測並結標已過期競標
+  useAutoFinalize(auctions);
 
   // Summary stats
   const stats = {

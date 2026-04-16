@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase/admin';
 import { multicast, pushMessage, extractLineUserId } from '@/lib/line/messaging';
 import { finalizeAuction } from '@/lib/firebase/auctions';
+import { sendWinnerEmail } from '@/lib/email';
 
 // 通知類型
 type NotifyType = '60min' | '10min' | '1min' | 'ended';
@@ -56,13 +57,26 @@ export async function GET(req: NextRequest) {
           await markNotified(db, auctionId, 'ended');
           // 結標
           await finalizeAuction(auctionId);
-          // 通知得標者
+          // 通知得標者 LINE + Email
           if (auction.lastBidderId) {
+            // LINE 推播
             const lineId = extractLineUserId(auction.lastBidderId);
             if (lineId) {
               await pushMessage(lineId,
                 `🏆 恭喜得標！\n\n商品：${auction.title}\n得標價：$${auction.currentPrice?.toLocaleString()}\n\n請等候賣家聯繫付款及出貨資訊。`
-              );
+              ).catch(() => {});
+            }
+            // Email 通知
+            const userSnap = await db.ref(`users/${auction.lastBidderId}`).once('value');
+            const userData = userSnap.val();
+            if (userData?.email) {
+              await sendWinnerEmail({
+                to: userData.email,
+                name: userData.name || '得標者',
+                productName: auction.title,
+                finalPrice: auction.currentPrice,
+                auctionId,
+              }).catch(() => {});
             }
           }
           results.push(`${auctionId}: ended + winner notified`);
