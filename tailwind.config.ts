@@ -12,6 +12,9 @@ const config: Config = {
         brand: {
           black: '#000000',
           white: '#FFFFFF',
+          red: '#CC0000',
+          'red-bright': '#FF1A1A',
+          'red-dark': '#8B0000',
           gray: {
             100: '#F0F0F0',
             200: '#D6D6D6',
@@ -23,12 +26,13 @@ const config: Config = {
             800: '#1A1A1A',
             900: '#0D0D0D',
           },
-          accent: '#FFFFFF',  // pure white accent for B&W theme
+          accent: '#FFFFFF',
         },
       },
       fontFamily: {
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
         mono: ['var(--font-mono)', 'Courier New', 'monospace'],
+        display: ['var(--font-bebas)', 'Impact', 'sans-serif'],
       },
       animation: {
         'pulse-fast': 'pulse 0.8s cubic-bezier(0.4, 0, 0.6, 1) infinite',

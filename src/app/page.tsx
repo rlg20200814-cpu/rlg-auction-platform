@@ -9,248 +9,346 @@ import { subscribeToProducts } from '@/lib/firebase/products';
 import AuctionCard from '@/components/auction/AuctionCard';
 import ProductCard from '@/components/product/ProductCard';
 import type { Auction, Product } from '@/types';
-import { ArrowRight, Gavel, ShoppingBag, Info } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { ArrowRight } from 'lucide-react';
 
 export default function HomePage() {
   const [activeAuctions, setActiveAuctions] = useState<Auction[]>([]);
+  const [allAuctions, setAllAuctions] = useState<Auction[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
-  const [auctionCount, setAuctionCount] = useState(0);
+  const [productCount, setProductCount] = useState(0);
 
   useEffect(() => {
     const unsub1 = subscribeToAuctions((data) => {
-      const active = data.filter((a) => a.status === 'active');
-      setActiveAuctions(active.slice(0, 3));
-      setAuctionCount(active.length);
+      setAllAuctions(data);
+      setActiveAuctions(data.filter((a) => a.status === 'active').slice(0, 3));
     });
     const unsub2 = subscribeToProducts((data) => {
       const available = data.filter((p) => p.status === 'available');
       setFeaturedProducts(available.slice(0, 3));
+      setProductCount(available.length);
     });
     return () => { unsub1(); unsub2(); };
   }, []);
 
+  const activeCount = activeAuctions.length;
+  const totalEnded = allAuctions.filter((a) => a.status === 'ended').length;
+
   return (
-    <>
-      <div className="cyber-scanline" />
+    <div className="min-h-screen bg-black text-white">
       <Header />
 
-      <main>
-        {/* ── Hero ── */}
-        <section className="relative min-h-[85vh] flex flex-col justify-center overflow-hidden px-6 md:px-12">
-          {/* Decorative large background text */}
-          <div
-            className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden"
-            aria-hidden
-          >
-            <span className="text-[20vw] font-black text-white/[0.025] tracking-[-0.05em] leading-none whitespace-nowrap">
-              RLG
-            </span>
+      {/* ── HERO ── */}
+      <section className="relative min-h-screen flex flex-col overflow-hidden">
+
+        {/* Right: Hero Image */}
+        {/* ↓ 將您的爬蟲主圖命名為 hero.jpg 放入 /public 資料夾即可替換 */}
+        <div
+          className="absolute inset-y-0 right-0 w-full md:w-[62%]"
+          style={{ zIndex: 0 }}
+        >
+          <div className="relative w-full h-full">
+            <Image
+              src="/hero.jpg"
+              alt="RLG Reptile"
+              fill
+              className="object-cover object-center"
+              priority
+              onError={() => {/* fallback handled by CSS */}}
+            />
+            {/* Fallback dark gradient when no image */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: 'radial-gradient(ellipse at 70% 50%, #1a0000 0%, #0a0000 40%, #000 100%)',
+              }}
+            />
+            {/* Fade-to-left overlay */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: 'linear-gradient(to right, #000 0%, #000 10%, rgba(0,0,0,0.7) 40%, rgba(0,0,0,0.1) 100%)',
+              }}
+            />
+            {/* Red tint overlay */}
+            <div
+              className="absolute inset-0 opacity-20"
+              style={{ background: 'radial-gradient(ellipse at 60% 50%, #cc0000 0%, transparent 60%)' }}
+            />
           </div>
+        </div>
 
-          {/* Corner brackets */}
-          <div className="absolute top-8 left-6 md:left-12 w-8 h-8 border-t border-l border-white/30" />
-          <div className="absolute bottom-8 right-6 md:right-12 w-8 h-8 border-b border-r border-white/30" />
+        {/* Left: Content */}
+        <div className="relative z-10 flex flex-col justify-center min-h-screen px-8 md:px-16 lg:px-24 pt-20 pb-8">
+          <div className="max-w-xl">
 
-          <div className="relative max-w-6xl mx-auto w-full">
             {/* Eyebrow */}
-            <p className="text-xs text-white/25 tracking-[0.4em] uppercase font-mono mb-6">
-              RLG REPTILE · TAIWAN
-            </p>
-
-            {/* Main headline */}
-            <h1 className="text-5xl sm:text-7xl md:text-8xl font-black tracking-[-0.03em] leading-[0.9] text-white mb-8">
-              稀有爬蟲<br />
-              <span className="text-white/30">競標・零售</span>
-            </h1>
-
-            <p className="text-white/40 text-base md:text-lg max-w-lg mb-12 leading-relaxed tracking-wide">
-              台灣頂級爬蟲品牌，專注於高品質活體交易。
-              即時競標系統，公平透明，讓每一次交易都安心。
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-wrap gap-4 items-center">
-              <Link href="/auction" className="btn-primary">
-                <Gavel className="w-4 h-4" />
-                查看競標
-                {auctionCount > 0 && (
-                  <span className="ml-1 opacity-60 text-xs font-mono">LIVE {auctionCount}</span>
-                )}
-              </Link>
-              <Link href="/shop" className="btn-secondary">
-                <ShoppingBag className="w-4 h-4" />
-                零售商品
-              </Link>
-              <Link href="/about" className="btn-ghost text-white/50 hover:text-white">
-                關於我們
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-8 h-px bg-brand-red" />
+              <span className="text-xs tracking-[0.4em] uppercase text-white/50 font-mono">
+                PREMIUM SELECTION · TAIWAN
+              </span>
             </div>
-          </div>
 
-          {/* Bottom gradient fade */}
-          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent pointer-events-none" />
-        </section>
-
-        {/* ── Live Auctions ── */}
-        {activeAuctions.length > 0 && (
-          <section className="max-w-6xl mx-auto px-4 md:px-6 py-16">
-            <div className="flex items-end justify-between mb-8">
-              <div>
-                <p className="text-[10px] text-white/25 tracking-[0.4em] uppercase font-mono mb-2">
-                  LIVE NOW
-                </p>
-                <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-                  競標進行中
-                  <span className="flex items-center gap-1.5 text-xs font-mono text-white/40 tracking-widest">
-                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse-fast" />
-                    {auctionCount}
-                  </span>
-                </h2>
-              </div>
-              <Link
-                href="/auction"
-                className="flex items-center gap-1.5 text-xs text-white/30 hover:text-white transition-colors font-mono tracking-widest uppercase"
+            {/* Headline */}
+            <div className="mb-4 leading-none">
+              <div
+                className="font-display text-[clamp(80px,14vw,160px)] leading-none tracking-wide text-white"
+                style={{ lineHeight: '0.92' }}
               >
-                全部 <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
+                RLG
+              </div>
+              <div
+                className="font-display text-[clamp(80px,14vw,160px)] leading-none tracking-wide text-brand-red"
+                style={{ lineHeight: '0.92', textShadow: '0 0 60px rgba(204,0,0,0.4)' }}
+              >
+                REPTILE
+              </div>
             </div>
 
-            <hr className="rlg-rule mb-8" />
+            {/* Sub-title */}
+            <p className="text-xs md:text-sm tracking-[0.5em] uppercase text-white/40 font-mono mb-6">
+              STUDIO · 稀有爬蟲專門店
+            </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-              {activeAuctions.map((auction) => (
-                <AuctionCard key={auction.id} auction={auction} />
+            {/* Tags */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              {['即時競標', '精選品系', '高品質活體'].map((tag) => (
+                <span
+                  key={tag}
+                  className="flex items-center gap-1.5 text-[10px] tracking-[0.2em] uppercase font-mono px-3 py-1 border border-white/15 text-white/50"
+                >
+                  <span className="w-1 h-1 rounded-full bg-brand-red inline-block" />
+                  {tag}
+                </span>
               ))}
             </div>
 
-            {auctionCount > 3 && (
-              <div className="text-center mt-8">
-                <Link href="/auction" className="btn-secondary py-2 px-6 text-sm">
-                  查看全部 {auctionCount} 個競標
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-            )}
-          </section>
-        )}
+            {/* Description */}
+            <p className="text-sm text-white/35 leading-relaxed mb-10 max-w-sm">
+              台灣頂級爬蟲品牌，專注親繁高品質活體。
+              <br />
+              每一隻都是唯一，每一場都公平透明。
+            </p>
 
-        {/* ── Feature strips ── */}
-        <section className="border-y border-white/8 py-8 overflow-x-auto">
-          <div className="max-w-6xl mx-auto px-4 md:px-6">
-            <div className="flex items-stretch divide-x divide-white/8 min-w-max md:min-w-0 md:grid md:grid-cols-3">
+            {/* CTA */}
+            <div className="flex flex-wrap gap-4">
+              <Link
+                href="/auction"
+                className="group inline-flex items-center gap-3 border border-brand-red px-8 py-4 text-sm tracking-[0.2em] uppercase font-medium text-white hover:bg-brand-red transition-all duration-300"
+              >
+                進入競標
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                {activeCount > 0 && (
+                  <span className="text-brand-red group-hover:text-white text-xs font-mono">
+                    LIVE {activeCount}
+                  </span>
+                )}
+              </Link>
+              <Link
+                href="/shop"
+                className="inline-flex items-center gap-3 px-8 py-4 text-sm tracking-[0.2em] uppercase font-medium text-white/40 hover:text-white border border-white/10 hover:border-white/30 transition-all duration-300"
+              >
+                零售商品
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Bar */}
+        <div
+          className="relative z-10 mt-auto border-t border-white/8"
+          style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)' }}
+        >
+          <div className="max-w-6xl mx-auto px-8 md:px-16 lg:px-24">
+            <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/8">
               {[
                 {
-                  title: '即時競標系統',
-                  desc: '出價前 60 秒自動延長，確保所有人公平競標機會',
-                  tag: 'AUCTION',
+                  value: totalEnded > 0 ? `${totalEnded}+` : '—',
+                  label: '成功交易場次',
+                  sub: '持續增加中',
                 },
                 {
-                  title: '稀有活體直送',
-                  desc: '親自繁殖或嚴選品質，每隻均附基本資訊與健康保證',
-                  tag: 'QUALITY',
+                  value: productCount > 0 ? `${productCount}` : '精選',
+                  label: '零售商品在架',
+                  sub: '親繁嚴選',
                 },
                 {
-                  title: 'LINE 即時通知',
-                  desc: '得標、被超出價即時推播，不錯過任何關鍵時刻',
-                  tag: 'NOTIFY',
+                  value: '98.7%',
+                  label: '買家滿意度',
+                  sub: '口碑保證',
                 },
-              ].map(({ title, desc, tag }) => (
-                <div key={tag} className="px-6 md:px-8 py-4 first:pl-0 last:pr-0 flex-1">
-                  <p className="text-[9px] text-white/20 tracking-[0.4em] uppercase font-mono mb-2">{tag}</p>
-                  <h3 className="text-sm font-semibold text-white mb-1">{title}</h3>
-                  <p className="text-xs text-white/35 leading-relaxed">{desc}</p>
+                {
+                  value: '每週',
+                  label: '定期開標',
+                  sub: '不定期特拍',
+                },
+              ].map(({ value, label, sub }) => (
+                <div key={label} className="px-6 py-5 flex flex-col gap-1">
+                  <span className="font-display text-3xl md:text-4xl text-white tracking-wide">
+                    {value}
+                  </span>
+                  <span className="text-[10px] text-white/60 tracking-wider uppercase font-mono">{label}</span>
+                  <span className="text-[9px] text-white/25 font-mono">{sub}</span>
                 </div>
               ))}
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* ── Featured Products ── */}
-        {featuredProducts.length > 0 && (
-          <section className="max-w-6xl mx-auto px-4 md:px-6 py-16">
-            <div className="flex items-end justify-between mb-8">
-              <div>
-                <p className="text-[10px] text-white/25 tracking-[0.4em] uppercase font-mono mb-2">
-                  RETAIL SHOP
-                </p>
-                <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
-                  零售商品
-                </h2>
+      {/* ── LIVE AUCTIONS ── */}
+      {activeAuctions.length > 0 && (
+        <section className="max-w-6xl mx-auto px-6 md:px-10 py-20">
+          <div className="flex items-end justify-between mb-10">
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-6 h-px bg-brand-red" />
+                <span className="text-[10px] text-brand-red tracking-[0.4em] uppercase font-mono">LIVE NOW</span>
               </div>
-              <Link
-                href="/shop"
-                className="flex items-center gap-1.5 text-xs text-white/30 hover:text-white transition-colors font-mono tracking-widest uppercase"
-              >
-                全部 <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-
-            <hr className="rlg-rule mb-8" />
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-              {featuredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-
-            <div className="text-center mt-8">
-              <Link href="/shop" className="btn-secondary py-2 px-6 text-sm">
-                查看全部零售商品
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </section>
-        )}
-
-        {/* ── About CTA ── */}
-        <section className="max-w-6xl mx-auto px-4 md:px-6 py-16">
-          <div className="border border-white/8 p-8 md:p-12 relative overflow-hidden">
-            {/* Background decoration */}
-            <div className="absolute top-0 right-0 w-48 h-48 opacity-5">
-              <Image src="/logo-dark.png" alt="" fill className="object-contain object-right-top" />
-            </div>
-
-            {/* Corner brackets */}
-            <div className="absolute top-0 left-0 w-6 h-6 border-t border-l border-white/40" />
-            <div className="absolute bottom-0 right-0 w-6 h-6 border-b border-r border-white/40" />
-
-            <div className="relative max-w-xl">
-              <p className="text-[10px] text-white/25 tracking-[0.4em] uppercase font-mono mb-3">
-                ABOUT RLG
-              </p>
-              <h2 className="text-2xl md:text-3xl font-bold text-white mb-4 tracking-tight">
-                關於 RLG REPTILE
+              <h2 className="font-display text-4xl md:text-5xl text-white tracking-wide">
+                競標進行中
               </h2>
-              <p className="text-white/40 text-sm leading-relaxed mb-6">
-                RLG Reptile 專注於台灣爬蟲市場，致力於提供高品質的活體與相關周邊。
-                我們相信每一次交易都應該是透明、公平、安心的。
-              </p>
-              <Link href="/about" className={cn('btn-secondary py-2.5 px-5 text-sm')}>
-                <Info className="w-4 h-4" />
-                了解更多
-              </Link>
             </div>
+            <Link
+              href="/auction"
+              className="hidden md:flex items-center gap-2 text-xs text-white/30 hover:text-brand-red transition-colors font-mono tracking-widest uppercase"
+            >
+              全部競標 <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <div className="h-px bg-gradient-to-r from-brand-red via-brand-red/20 to-transparent mb-10" />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {activeAuctions.map((auction) => (
+              <AuctionCard key={auction.id} auction={auction} />
+            ))}
+          </div>
+
+          <div className="mt-8 md:hidden text-center">
+            <Link href="/auction" className="btn-secondary text-sm">
+              查看全部競標 <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </section>
+      )}
 
-        {/* ── Footer ── */}
-        <footer className="border-t border-white/8 py-8">
-          <div className="max-w-6xl mx-auto px-4 md:px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Image src="/logo.png" alt="RLG REPTILE" width={70} height={26} className="object-contain opacity-60" />
-              <span className="text-[10px] text-white/20 font-mono tracking-widest">REPTILE · TAIWAN</span>
-            </div>
-            <div className="flex items-center gap-6 text-[10px] text-white/20 font-mono tracking-widest uppercase">
-              <Link href="/auction" className="hover:text-white/50 transition-colors">競標</Link>
-              <Link href="/shop" className="hover:text-white/50 transition-colors">零售</Link>
-              <Link href="/about" className="hover:text-white/50 transition-colors">關於</Link>
-            </div>
-            <p className="text-[10px] text-white/15 font-mono">© 2025 RLG REPTILE</p>
+      {/* ── BRAND STRIP ── */}
+      <div className="border-y border-white/8 overflow-hidden">
+        <div className="flex items-center">
+          {/* Marquee-style strip */}
+          <div className="flex items-center gap-12 px-8 py-4 whitespace-nowrap text-[10px] tracking-[0.4em] uppercase font-mono text-white/15 overflow-hidden">
+            {Array(6).fill(null).map((_, i) => (
+              <span key={i} className="flex items-center gap-12">
+                <span>RLG REPTILE STUDIO</span>
+                <span className="text-brand-red/40">✦</span>
+                <span>TAIWAN</span>
+                <span className="text-brand-red/40">✦</span>
+                <span>PREMIUM BLOODLINE</span>
+                <span className="text-brand-red/40">✦</span>
+              </span>
+            ))}
           </div>
-        </footer>
-      </main>
-    </>
+        </div>
+      </div>
+
+      {/* ── RETAIL PRODUCTS ── */}
+      {featuredProducts.length > 0 && (
+        <section className="max-w-6xl mx-auto px-6 md:px-10 py-20">
+          <div className="flex items-end justify-between mb-10">
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-6 h-px bg-brand-red" />
+                <span className="text-[10px] text-brand-red tracking-[0.4em] uppercase font-mono">RETAIL SHOP</span>
+              </div>
+              <h2 className="font-display text-4xl md:text-5xl text-white tracking-wide">
+                零售商品
+              </h2>
+            </div>
+            <Link
+              href="/shop"
+              className="hidden md:flex items-center gap-2 text-xs text-white/30 hover:text-brand-red transition-colors font-mono tracking-widest uppercase"
+            >
+              全部商品 <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <div className="h-px bg-gradient-to-r from-brand-red via-brand-red/20 to-transparent mb-10" />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {featuredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+
+          <div className="mt-8 text-center">
+            <Link href="/shop" className="btn-secondary text-sm">
+              查看全部零售商品 <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {/* ── ABOUT CTA ── */}
+      <section className="relative overflow-hidden border-t border-white/8 py-20 px-6 md:px-10">
+        {/* Red glow bg */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(204,0,0,0.08) 0%, transparent 60%)' }}
+        />
+
+        <div className="max-w-6xl mx-auto relative z-10">
+          <div className="max-w-2xl mx-auto text-center">
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <div className="w-8 h-px bg-brand-red" />
+              <span className="text-[10px] text-brand-red tracking-[0.4em] uppercase font-mono">ABOUT RLG</span>
+              <div className="w-8 h-px bg-brand-red" />
+            </div>
+            <h2 className="font-display text-5xl md:text-7xl text-white tracking-wide mb-6">
+              關於我們
+            </h2>
+            <p className="text-white/35 text-sm leading-relaxed mb-10 max-w-md mx-auto">
+              RLG Reptile 從對爬蟲的純粹熱愛出發，致力提供台灣最高品質的爬蟲活體與交易平台。
+              每一筆交易，我們都認真對待。
+            </p>
+            <div className="flex flex-wrap gap-4 justify-center">
+              <Link
+                href="/about"
+                className="group inline-flex items-center gap-3 border border-brand-red px-8 py-4 text-sm tracking-[0.2em] uppercase font-medium text-white hover:bg-brand-red transition-all duration-300"
+              >
+                了解更多
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+              <a
+                href="https://lin.ee/o5UuAwc"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 px-8 py-4 text-sm tracking-[0.2em] uppercase font-medium text-white/40 hover:text-white border border-white/10 hover:border-white/30 transition-all duration-300"
+              >
+                聯絡我們
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer className="border-t border-white/8 py-8 px-6 md:px-10">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Image src="/logo.png" alt="RLG REPTILE" width={60} height={22} className="object-contain opacity-50" />
+            <span className="text-[9px] text-white/15 font-mono tracking-widest">REPTILE STUDIO · TAIWAN</span>
+          </div>
+          <div className="flex items-center gap-6 text-[10px] text-white/20 font-mono tracking-widest uppercase">
+            <Link href="/auction" className="hover:text-brand-red transition-colors">競標</Link>
+            <Link href="/shop" className="hover:text-brand-red transition-colors">零售</Link>
+            <Link href="/about" className="hover:text-brand-red transition-colors">關於</Link>
+            <a href="https://www.instagram.com/rlg_reptile_studio/" target="_blank" rel="noopener noreferrer" className="hover:text-brand-red transition-colors">IG</a>
+            <a href="https://lin.ee/o5UuAwc" target="_blank" rel="noopener noreferrer" className="hover:text-brand-red transition-colors">LINE</a>
+          </div>
+          <p className="text-[9px] text-white/10 font-mono">© 2025 RLG REPTILE STUDIO</p>
+        </div>
+      </footer>
+    </div>
   );
 }
