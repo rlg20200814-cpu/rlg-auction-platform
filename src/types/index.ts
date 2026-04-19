@@ -125,6 +125,54 @@ export interface CreateProductForm {
 }
 
 // =============================================
+// Cart & Order Types
+// =============================================
+
+export type PaymentMethod = 'bank_transfer' | 'credit_card';
+
+export type OrderStatus =
+  | 'pending_payment'
+  | 'paid'
+  | 'processing'
+  | 'shipped'
+  | 'completed'
+  | 'cancelled';
+
+export interface CartItem {
+  product: Product;
+  quantity: number;
+}
+
+export interface OrderItem {
+  productId: string;
+  title: string;
+  price: number;
+  quantity: number;
+  image?: string;
+}
+
+export interface Order {
+  id: string;
+  orderNumber: string;
+  userId?: string;
+  buyerName: string;
+  buyerEmail: string;
+  buyerPhone: string;
+  shippingAddress: string;
+  shippingMethod: 'mail' | 'face_to_face';
+  items: OrderItem[];
+  subtotal: number;
+  shippingFee: number;
+  totalAmount: number;
+  paymentMethod: PaymentMethod;
+  status: OrderStatus;
+  paymentId?: string;   // ECPay MerchantTradeNo
+  note?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+// =============================================
 // Notification Types
 // =============================================
 

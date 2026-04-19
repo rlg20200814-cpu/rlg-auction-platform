@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter, Bebas_Neue } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { CartProvider } from '@/contexts/CartContext';
 import { Toaster } from 'react-hot-toast';
 
 const inter = Inter({
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="zh-TW" className={`${inter.variable} ${bebasNeue.variable}`}>
       <body>
         <AuthProvider>
+          <CartProvider>
           {children}
           <Toaster
             position="top-center"
@@ -64,6 +66,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               },
             }}
           />
+          </CartProvider>
         </AuthProvider>
       </body>
     </html>

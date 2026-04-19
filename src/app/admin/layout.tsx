@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import Image from 'next/image';
-import { LayoutGrid, Plus, Settings, ArrowLeft, ShoppingBag } from 'lucide-react';
+import { LayoutGrid, Plus, Settings, ArrowLeft, ShoppingBag, ClipboardList } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 
@@ -33,6 +33,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: '/admin/auctions/new', label: '新增競標', icon: Plus },
     { href: '/admin/products', label: '零售商品', icon: ShoppingBag, exact: true },
     { href: '/admin/products/new', label: '新增零售', icon: Plus },
+    { href: '/admin/orders', label: '訂單管理', icon: ClipboardList, exact: true },
   ];
 
   return (

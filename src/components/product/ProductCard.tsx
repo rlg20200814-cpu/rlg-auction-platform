@@ -1,33 +1,37 @@
+'use client';
+
+import Link from 'next/link';
 import Image from 'next/image';
 import { formatCurrency, getImagePlaceholder } from '@/lib/utils';
 import { cn } from '@/lib/utils';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, Plus } from 'lucide-react';
 import type { Product } from '@/types';
+import { useCart } from '@/contexts/CartContext';
 
 interface ProductCardProps {
   product: Product;
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+  const { addToCart } = useCart();
   const image = product.images?.[0] || getImagePlaceholder(product.title);
   const isSoldOut = product.status === 'sold_out' || product.stock === 0;
 
   return (
     <div className={cn(
-      'relative border overflow-hidden flex flex-col h-full transition-all duration-300',
+      'relative border overflow-hidden flex flex-col h-full transition-all duration-300 group',
       'bg-brand-gray-900',
       isSoldOut
         ? 'border-white/6 opacity-50'
         : 'border-white/10 hover:border-white/30 hover:-translate-y-0.5'
     )}>
 
-      {/* Corner brackets — top left */}
+      {/* Corner brackets */}
       <span className="absolute top-0 left-0 w-3 h-3 border-t border-l border-white/40 z-10 transition-all duration-300 group-hover:w-4 group-hover:h-4 group-hover:border-white/70" />
-      {/* Corner brackets — bottom right */}
       <span className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-white/40 z-10 transition-all duration-300 group-hover:w-4 group-hover:h-4 group-hover:border-white/70" />
 
-      {/* Image */}
-      <div className="relative aspect-[4/3] overflow-hidden bg-black group">
+      {/* Image (clickable → detail page) */}
+      <Link href={`/shop/${product.id}`} className="relative aspect-[4/3] overflow-hidden bg-black block">
         <Image
           src={image}
           alt={product.title}
@@ -38,7 +42,6 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
-        {/* Dark overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
         {/* Status badge */}
@@ -61,12 +64,12 @@ export default function ProductCard({ product }: ProductCardProps) {
             {product.stock}
           </div>
         )}
-      </div>
+      </Link>
 
       {/* Content */}
       <div className="p-4 flex flex-col flex-1 gap-3">
         {/* Category + Title */}
-        <div>
+        <Link href={`/shop/${product.id}`} className="block">
           <p className="text-[9px] text-white/25 tracking-[0.35em] uppercase font-mono mb-1">
             {product.category || 'RLG REPTILE'}
           </p>
@@ -76,28 +79,39 @@ export default function ProductCard({ product }: ProductCardProps) {
           {product.ageClass && (
             <p className="text-[10px] text-white/30 mt-0.5 font-mono">{product.ageClass}</p>
           )}
-        </div>
+        </Link>
 
         <div className="mt-auto space-y-3">
-          {/* Separator */}
           <div className="flex items-center gap-2">
             <hr className="flex-1 border-none h-px bg-white/8" />
           </div>
 
-          {/* Price */}
-          <div>
-            <p className="text-[9px] text-white/25 tracking-[0.3em] uppercase font-mono mb-1">
-              PRICE
-            </p>
-            <p className={cn(
-              'font-mono font-bold tabular-nums tracking-tight text-xl md:text-2xl',
-              isSoldOut ? 'text-white/40' : 'text-white'
-            )}>
-              {formatCurrency(product.price)}
-            </p>
+          {/* Price + Add to cart */}
+          <div className="flex items-end justify-between gap-2">
+            <div>
+              <p className="text-[9px] text-white/25 tracking-[0.3em] uppercase font-mono mb-1">
+                PRICE
+              </p>
+              <p className={cn(
+                'font-mono font-bold tabular-nums tracking-tight text-xl md:text-2xl',
+                isSoldOut ? 'text-white/40' : 'text-white'
+              )}>
+                {formatCurrency(product.price)}
+              </p>
+            </div>
+
+            {!isSoldOut && (
+              <button
+                onClick={() => addToCart(product)}
+                className="shrink-0 flex items-center gap-1.5 px-3 py-2 bg-white text-black text-[10px] font-bold tracking-[0.15em] uppercase hover:bg-brand-red hover:text-white transition-all"
+                aria-label="加入購物車"
+              >
+                <Plus className="w-3 h-3" />
+                加入
+              </button>
+            )}
           </div>
 
-          {/* Condition */}
           {product.condition && (
             <div className="border-t border-white/8 pt-2">
               <p className="text-[10px] text-white/30 font-mono tracking-wider">

@@ -4,14 +4,16 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState } from 'react';
-import { LogOut, User, Menu, X, Settings } from 'lucide-react';
+import { LogOut, User, Menu, X, Settings, ShoppingCart } from 'lucide-react';
 import { signOut } from '@/lib/firebase/auth';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCart } from '@/contexts/CartContext';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
 export default function Header() {
   const { user, loading, isAdmin } = useAuth();
+  const { count: cartCount } = useCart();
   const router = useRouter();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -67,6 +69,16 @@ export default function Header() {
 
         {/* Right side */}
         <div className="hidden md:flex items-center gap-3">
+          {/* Cart icon */}
+          <Link href="/cart" className="relative p-1.5 text-white/40 hover:text-white transition-colors">
+            <ShoppingCart className="w-4 h-4" />
+            {cartCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-brand-red text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                {cartCount > 9 ? '9+' : cartCount}
+              </span>
+            )}
+          </Link>
+
           {isAdmin && (
             <Link
               href="/admin"
@@ -114,14 +126,24 @@ export default function Header() {
           )}
         </div>
 
-        {/* Mobile menu toggle */}
-        <button
-          className="md:hidden p-2 text-white/50 hover:text-white transition-colors"
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="選單"
-        >
-          {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+        {/* Mobile: cart + menu toggle */}
+        <div className="md:hidden flex items-center gap-1">
+          <Link href="/cart" className="relative p-2 text-white/40 hover:text-white transition-colors">
+            <ShoppingCart className="w-4 h-4" />
+            {cartCount > 0 && (
+              <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 bg-brand-red text-white text-[8px] font-bold rounded-full flex items-center justify-center">
+                {cartCount > 9 ? '9+' : cartCount}
+              </span>
+            )}
+          </Link>
+          <button
+            className="p-2 text-white/50 hover:text-white transition-colors"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="選單"
+          >
+            {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile menu */}
