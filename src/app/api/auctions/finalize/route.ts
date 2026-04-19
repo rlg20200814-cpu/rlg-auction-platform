@@ -12,7 +12,8 @@ import { sendWinnerEmail } from '@/lib/email';
 
 export async function POST(req: NextRequest) {
   try {
-    const { auctionId } = await req.json();
+    const body = await req.json();
+    const { auctionId, force } = body;
     if (!auctionId) {
       return NextResponse.json({ error: '缺少 auctionId' }, { status: 400 });
     }
@@ -25,8 +26,8 @@ export async function POST(req: NextRequest) {
 
     const auction = snap.val();
 
-    // 尚未到結標時間，且還有超過 5 秒緩衝，拒絕提前結標
-    if (auction.endTime - Date.now() > 5000) {
+    // 尚未到結標時間，且還有超過 5 秒緩衝，拒絕提前結標（管理員可用 force=true 強制結標）
+    if (!force && auction.endTime - Date.now() > 5000) {
       return NextResponse.json({ error: '競標尚未結束' }, { status: 400 });
     }
 

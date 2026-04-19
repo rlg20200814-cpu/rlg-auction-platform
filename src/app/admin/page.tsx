@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getAllAuctions, setAuctionStatus, updateAuction, finalizeAuction } from '@/lib/firebase/auctions';
+import { getAllAuctions, setAuctionStatus } from '@/lib/firebase/auctions';
 import { formatCurrency, formatDateTime, getImagePlaceholder, getAuctionStatusLabel } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { Plus, Edit, Play, Square, Trophy, RefreshCw, TrendingUp, Clock, DollarSign, QrCode } from 'lucide-react';
@@ -39,7 +39,11 @@ export default function AdminPage() {
   const handleEnd = async (id: string) => {
     if (!confirm('確定要結束此競標？此操作無法復原')) return;
     setActionLoading(id + '_end');
-    await finalizeAuction(id);
+    await fetch('/api/auctions/finalize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ auctionId: id, force: true }),
+    });
     toast.success('競標已結束');
     await load();
     setActionLoading(null);
