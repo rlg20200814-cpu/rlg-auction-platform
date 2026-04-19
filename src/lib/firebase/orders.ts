@@ -16,7 +16,7 @@ export async function getAllOrders(): Promise<Order[]> {
   const snap = await get(ref(db, 'orders'));
   if (!snap.exists()) return [];
   const orders: Order[] = [];
-  snap.forEach(child => orders.push({ id: child.key!, ...child.val() } as Order));
+  snap.forEach(child => { orders.push({ id: child.key!, ...child.val() } as Order); });
   return orders.sort((a, b) => b.createdAt - a.createdAt);
 }
 
@@ -25,7 +25,7 @@ export function subscribeToOrders(callback: (orders: Order[]) => void) {
   const listener = onValue(ordersRef, snap => {
     if (!snap.exists()) { callback([]); return; }
     const orders: Order[] = [];
-    snap.forEach(child => orders.push({ id: child.key!, ...child.val() } as Order));
+    snap.forEach(child => { orders.push({ id: child.key!, ...child.val() } as Order); });
     callback(orders.sort((a, b) => b.createdAt - a.createdAt));
   });
   return () => off(ordersRef, 'value', listener);
