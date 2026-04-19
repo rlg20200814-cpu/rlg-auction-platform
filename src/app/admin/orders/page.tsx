@@ -91,7 +91,7 @@ export default function AdminOrdersPage() {
 
       {/* Filter tabs */}
       <div className="flex flex-wrap gap-2">
-        {[{ value: 'all', label: '全部' }, ...STATUS_OPTIONS].map(opt => (
+        {([{ value: 'all', label: '全部' }, ...STATUS_OPTIONS] as { value: string; label: string }[]).map(opt => (
           <button
             key={opt.value}
             onClick={() => setFilterStatus(opt.value as OrderStatus | 'all')}
@@ -102,7 +102,7 @@ export default function AdminOrdersPage() {
                 : 'text-brand-gray-400 border-brand-gray-700 hover:border-brand-gray-500'
             )}
           >
-            {('label' in opt) ? opt.label : opt.value}
+            {opt.label}
           </button>
         ))}
       </div>
