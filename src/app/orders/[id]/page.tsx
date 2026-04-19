@@ -19,9 +19,9 @@ const STATUS_LABELS: Record<OrderStatus, { label: string; color: string }> = {
   cancelled:       { label: '已取消', color: 'text-red-400' },
 };
 
-const BANK_NAME    = process.env.NEXT_PUBLIC_BANK_NAME    ?? '玉山銀行';
-const BANK_CODE    = process.env.NEXT_PUBLIC_BANK_CODE    ?? '808';
-const BANK_ACCOUNT = process.env.NEXT_PUBLIC_BANK_ACCOUNT ?? '請聯繫賣家取得帳號';
+const BANK_NAME    = process.env.NEXT_PUBLIC_BANK_NAME    ?? '台灣銀行';
+const BANK_CODE    = process.env.NEXT_PUBLIC_BANK_CODE    ?? '004';
+const BANK_ACCOUNT = process.env.NEXT_PUBLIC_BANK_ACCOUNT ?? '026008418765';
 const BANK_HOLDER  = process.env.NEXT_PUBLIC_BANK_HOLDER  ?? 'RLG REPTILE';
 
 export default function OrderPage() {
